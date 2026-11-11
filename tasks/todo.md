@@ -1,26 +1,26 @@
 # 任務清單
 
-- [ ] 工作區資料模型與舊資料轉換
+- [x] 工作區資料模型與舊資料轉換
   - Acceptance: 舊 `records` 陣列與 v1 JSON 轉成新版工作區。
   - Verify: `node --test tests/workspace.test.mjs`
   - Files: `core.mjs`, `tests/workspace.test.mjs`
-- [ ] 同步決策純函式
+- [x] 同步決策純函式
   - Acceptance: 空白、僅本機、僅雲端、相同與衝突皆有明確結果。
   - Verify: `node --test tests/workspace.test.mjs`
   - Files: `core.mjs`, `tests/workspace.test.mjs`
-- [ ] 研究指揮中心與文件編輯
+- [x] 研究指揮中心與文件編輯
   - Acceptance: 首頁可看專案、下一步、文件卡，文件可新增與編輯。
   - Verify: `npm test` 與瀏覽器操作。
   - Files: `index.html`, `app.js`, `styles.css`, `tests/structure.test.mjs`
-- [ ] Supabase schema 與 RLS
+- [x] Supabase schema 與 RLS
   - Acceptance: 四種操作政策皆限制為本人工作區，無 secret key。
   - Verify: SQL 靜態測試與 Supabase SQL Editor 說明。
   - Files: `supabase/schema.sql`, `tests/supabase-schema.test.mjs`
-- [ ] Supabase auth 與同步 UI
+- [x] Supabase auth 與同步 UI
   - Acceptance: 可設定、寄送魔法連結、登入、選版本、上傳、下載與登出。
   - Verify: adapter 單元測試、瀏覽器無 console error。
   - Files: `cloud.mjs`, `app.js`, `index.html`, `styles.css`, `tests/cloud.test.mjs`
-- [ ] 建置、文件與部署
+- [x] 建置、文件與部署
   - Acceptance: 產出可攜版、README 有設定步驟、GitHub Pages 上線。
   - Verify: `npm run build`, GitHub Actions 成功、Pages HTTP 200。
   - Files: `package.json`, `scripts/build-portable.mjs`, `README.md`, workflow, `CHANGELOG.md`
