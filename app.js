@@ -1,24 +1,37 @@
 import {
   buildCitationText,
+  createWorkspace,
+  decideInitialSync,
   generateEvidenceId,
   normalizeEvidence,
+  normalizeWorkspace,
   scoreEvidenceMatch,
   toCsv,
   toMarkdown,
   validateEvidence,
 } from "./core.mjs";
 
-const STORAGE_KEY = "research-evidence-workbench:v1";
+const STORAGE_KEY = "research-command-center:v1";
+const LEGACY_STORAGE_KEY = "research-evidence-workbench:v1";
 const STATUS_LABELS = {
   unverified: "未查證",
   supported: "支持",
   partial: "部分支持",
   contradicted: "反駁",
 };
+const DOCUMENT_STATUS_LABELS = { draft: "草稿", active: "進行中", complete: "已完成", archived: "封存" };
+const DOCUMENT_TYPE_LABELS = { plan: "研究計畫", passport: "研究護照", search: "搜尋策略", matrix: "文獻矩陣", analysis: "分析計畫", note: "一般筆記" };
+const DOCUMENT_TEMPLATES = [
+  { id: "research-plan", title: "研究計畫", type: "plan", summary: "研究背景、目的、假設與方法", content: "# 研究計畫\n\n## 背景與問題\n\n## 研究目的\n\n## 研究假設\n\n## 研究方法\n" },
+  { id: "research-passport", title: "研究護照", type: "passport", summary: "研究範圍、族群、變項與排除界線", content: "# 研究護照\n\n## 研究範圍\n\n## 族群與情境\n\n## 核心變項\n\n## 不納入的範圍\n" },
+  { id: "search-strategy", title: "文獻搜尋策略", type: "search", summary: "資料庫、關鍵字、布林式與篩選條件", content: "# 文獻搜尋策略\n\n## 資料庫\n\n## 關鍵字與同義詞\n\n## 搜尋式\n\n## 納入與排除條件\n" },
+  { id: "literature-matrix", title: "文獻矩陣規劃", type: "matrix", summary: "研究設計、樣本、測量與主要發現的比較欄位", content: "# 文獻矩陣規劃\n\n## 比較欄位\n\n- 研究設計\n- 樣本\n- 介入／暴露\n- 情緒測量\n- 認知測量\n- 主要結果\n- 限制\n" },
+  { id: "analysis-plan", title: "分析計畫", type: "analysis", summary: "主要分析、次要分析與敏感度分析", content: "# 分析計畫\n\n## 主要結果\n\n## 主要分析\n\n## 次要分析\n\n## 敏感度分析\n" },
+];
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const state = { records: loadRecords(), query: "", status: "all", coreOnly: false };
+const state = { workspace: loadWorkspace(), query: "", status: "all", coreOnly: false };
 let toastTimer;
 
 function escapeHtml(value) {
@@ -30,17 +43,21 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function loadRecords() {
+function loadWorkspace() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed.map(normalizeEvidence) : [];
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) return normalizeWorkspace(JSON.parse(current));
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) return normalizeWorkspace(JSON.parse(legacy));
+    return createWorkspace();
   } catch {
-    return [];
+    return createWorkspace();
   }
 }
 
-function saveRecords() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+function saveWorkspace() {
+  state.workspace.updatedAt = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.workspace));
   renderAll();
 }
 
@@ -66,7 +83,7 @@ function setActivePanel(name) {
 }
 
 function filteredRecords() {
-  return state.records
+  return state.workspace.records
     .map((record) => ({ record, score: scoreEvidenceMatch(record, state.query) }))
     .filter(({ record, score }) => score > 0 && (state.status === "all" || record.status === state.status) && (!state.coreOnly || record.core))
     .sort((a, b) => b.score - a.score || b.record.updatedAt.localeCompare(a.record.updatedAt))
@@ -110,15 +127,15 @@ function renderLedger() {
   $("#search-note").textContent = state.query ? `搜尋「${state.query}」；所有詞都需出現` : "相關度高的證據會排在前面";
   $("#evidence-list").innerHTML = records.length
     ? records.map(evidenceCard).join("")
-    : `<div class="empty-state"><strong>${state.records.length ? "沒有符合條件的證據" : "尚未建立證據"}</strong><span>${state.records.length ? "請調整關鍵字或篩選條件。" : "從一個準備寫進論文的主張開始，保存它的原文與頁碼。"}</span><button class="button primary" type="button" data-action="add">新增證據</button></div>`;
+    : `<div class="empty-state"><strong>${state.workspace.records.length ? "沒有符合條件的證據" : "尚未建立證據"}</strong><span>${state.workspace.records.length ? "請調整關鍵字或篩選條件。" : "從一個準備寫進論文的主張開始，保存它的原文與頁碼。"}</span><button class="button primary" type="button" data-action="add">新增證據</button></div>`;
 }
 
 function renderStats() {
-  const total = state.records.length;
-  const verified = state.records.filter((record) => record.status !== "unverified").length;
-  const core = state.records.filter((record) => record.core).length;
-  const warning = state.records.filter((record) => validateEvidence(record).length).length;
-  const complete = state.records.filter((record) => record.quote && (record.page || record.section) && (record.sourceUrl || record.doi || record.paperKey) && record.status !== "unverified").length;
+  const total = state.workspace.records.length;
+  const verified = state.workspace.records.filter((record) => record.status !== "unverified").length;
+  const core = state.workspace.records.filter((record) => record.core).length;
+  const warning = state.workspace.records.filter((record) => validateEvidence(record).length).length;
+  const complete = state.workspace.records.filter((record) => record.quote && (record.page || record.section) && (record.sourceUrl || record.doi || record.paperKey) && record.status !== "unverified").length;
   const rate = total ? Math.round((complete / total) * 100) : 0;
   $("#stat-total").textContent = total;
   $("#stat-verified").textContent = verified;
@@ -129,9 +146,32 @@ function renderStats() {
   $("#completion-bar").style.width = `${rate}%`;
 }
 
+function renderProject() {
+  const { profile, documents } = state.workspace;
+  $("#project-title").textContent = profile.title || "尚未建立研究計畫";
+  $("#project-question").textContent = profile.primaryQuestion || "先建立研究題目與核心問題，工作台會替您準備常用研究文件。";
+  $("#project-stage").textContent = profile.stage || "尚未設定";
+  $("#project-next-action").textContent = profile.nextAction || "建立研究計畫";
+  $("#edit-project").textContent = profile.title ? "編輯研究計畫" : "設定研究計畫";
+
+  $("#document-list").innerHTML = documents.length
+    ? documents.map((document) => `<button class="document-card" type="button" data-document-id="${escapeHtml(document.id)}">
+        <span class="document-type">${escapeHtml(DOCUMENT_TYPE_LABELS[document.type] || "研究文件")}</span>
+        <strong>${escapeHtml(document.title || "未命名文件")}</strong>
+        <span>${escapeHtml(document.summary || "點擊開啟並補上內容")}</span>
+        <small>${escapeHtml(DOCUMENT_STATUS_LABELS[document.status] || "草稿")} · ${formatDateTime(document.updatedAt)}</small>
+      </button>`).join("")
+    : `<div class="empty-state document-empty"><strong>尚未建立研究文件</strong><span>設定研究計畫後，會自動建立五份常用文件；也可以自行新增。</span><button class="button primary" type="button" data-document-action="setup">建立研究計畫</button></div>`;
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "尚未更新" : new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
 function paperNodes() {
   const papers = new Map();
-  for (const record of state.records) {
+  for (const record of state.workspace.records) {
     const key = record.paperKey || record.doi || record.title;
     if (!key) continue;
     const existing = papers.get(key);
@@ -222,9 +262,97 @@ function renderMap() {
 }
 
 function renderAll() {
+  renderProject();
   renderStats();
   renderLedger();
   renderMap();
+}
+
+function openProjectDialog() {
+  const form = $("#project-form");
+  for (const field of ["title", "primaryQuestion", "stage", "nextAction"]) {
+    form.elements[field].value = state.workspace.profile[field] || "";
+  }
+  $("#project-dialog").showModal();
+  setTimeout(() => form.elements.title.focus(), 0);
+}
+
+function closeProjectDialog() {
+  $("#project-dialog").close();
+}
+
+function saveProject(event) {
+  event.preventDefault();
+  const values = Object.fromEntries(new FormData(event.currentTarget));
+  const now = new Date().toISOString();
+  state.workspace.profile = {
+    title: values.title.trim(),
+    primaryQuestion: values.primaryQuestion.trim(),
+    stage: values.stage.trim(),
+    nextAction: values.nextAction.trim(),
+    updatedAt: now,
+  };
+  if (!state.workspace.documents.length) {
+    state.workspace.documents = DOCUMENT_TEMPLATES.map((document) => ({ ...document, status: "draft", updatedAt: now }));
+  }
+  saveWorkspace();
+  closeProjectDialog();
+  showToast("研究計畫已更新");
+}
+
+function openDocumentDialog(document = null) {
+  const form = $("#document-form");
+  form.reset();
+  form.elements.editingId.value = document?.id || "";
+  $("#document-dialog-title").textContent = document ? document.title : "新增研究文件";
+  $("#delete-document").hidden = !document;
+  if (document) {
+    for (const field of ["title", "type", "status", "summary", "content"]) form.elements[field].value = document[field] || "";
+  }
+  $("#document-dialog").showModal();
+  setTimeout(() => form.elements.title.focus(), 0);
+}
+
+function closeDocumentDialog() {
+  $("#document-dialog").close();
+}
+
+function saveDocument(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const values = Object.fromEntries(new FormData(form));
+  const editingId = values.editingId;
+  delete values.editingId;
+  const existing = state.workspace.documents.find((document) => document.id === editingId);
+  const normalized = normalizeWorkspace({ documents: [{
+    ...existing,
+    ...values,
+    id: existing?.id || `document-${Date.now()}`,
+    updatedAt: new Date().toISOString(),
+  }] }).documents[0];
+  if (existing) state.workspace.documents = state.workspace.documents.map((document) => document.id === existing.id ? normalized : document);
+  else state.workspace.documents.push(normalized);
+  saveWorkspace();
+  closeDocumentDialog();
+  showToast(existing ? "研究文件已更新" : "研究文件已建立");
+}
+
+function handleDocumentClick(event) {
+  if (event.target.closest('[data-document-action="setup"]')) return openProjectDialog();
+  const card = event.target.closest("[data-document-id]");
+  if (!card) return;
+  const document = state.workspace.documents.find((item) => item.id === card.dataset.documentId);
+  if (document) openDocumentDialog(document);
+}
+
+function deleteDocument() {
+  const id = $("#document-form").elements.editingId.value;
+  const document = state.workspace.documents.find((item) => item.id === id);
+  if (!document || !window.confirm(`確定刪除「${document.title}」？此操作無法復原。`)) return;
+  state.workspace.documents = state.workspace.documents.filter((item) => item.id !== id);
+  saveWorkspace();
+  closeDocumentDialog();
+  showToast("研究文件已刪除");
 }
 
 function openDialog(record = null) {
@@ -261,18 +389,18 @@ function saveForm(event) {
   const input = formRecord(form);
   const editingId = input.editingId;
   delete input.editingId;
-  const existing = state.records.find((record) => record.id === editingId);
+  const existing = state.workspace.records.find((record) => record.id === editingId);
   const now = new Date().toISOString();
   const record = normalizeEvidence({
     ...existing,
     ...input,
-    id: existing?.id || generateEvidenceId(new Date(), 1, state.records),
+    id: existing?.id || generateEvidenceId(new Date(), 1, state.workspace.records),
     createdAt: existing?.createdAt || now,
     updatedAt: now,
   });
-  if (existing) state.records = state.records.map((item) => item.id === existing.id ? record : item);
-  else state.records.unshift(record);
-  saveRecords();
+  if (existing) state.workspace.records = state.workspace.records.map((item) => item.id === existing.id ? record : item);
+  else state.workspace.records.unshift(record);
+  saveWorkspace();
   closeDialog();
   showToast(existing ? "證據已更新" : `已建立 ${record.id}`);
 }
@@ -303,18 +431,18 @@ function stamp() {
 }
 
 function exportJson() {
-  const payload = { schema: "research-evidence-workbench/v1", exportedAt: new Date().toISOString(), records: state.records };
+  const payload = { ...state.workspace, exportedAt: new Date().toISOString() };
   download(`research-evidence-${stamp()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
   showToast("JSON 備份已下載");
 }
 
 function exportCsv() {
-  download(`evidence-ledger-${stamp()}.csv`, toCsv(state.records), "text/csv;charset=utf-8");
+  download(`evidence-ledger-${stamp()}.csv`, toCsv(state.workspace.records), "text/csv;charset=utf-8");
   showToast("CSV 證據總表已下載");
 }
 
 function exportMarkdown() {
-  const content = state.records.map((record) => `${toMarkdown(record)}\n\n---\n`).join("\n");
+  const content = state.workspace.records.map((record) => `${toMarkdown(record)}\n\n---\n`).join("\n");
   download(`obsidian-evidence-notes-${stamp()}.md`, content || "# 尚無證據\n", "text/markdown;charset=utf-8");
   showToast("Markdown 筆記已下載");
 }
@@ -323,14 +451,11 @@ async function importJson(file) {
   if (!file) return;
   try {
     const payload = JSON.parse(await file.text());
-    const records = Array.isArray(payload) ? payload : payload.records;
-    if (!Array.isArray(records)) throw new Error("找不到 records 陣列");
-    const normalized = records.map(normalizeEvidence).filter((record) => record.id || record.title || record.quote);
-    if (!normalized.length && records.length) throw new Error("沒有可辨識的證據紀錄");
-    if (!window.confirm(`將以 ${normalized.length} 筆匯入資料取代目前 ${state.records.length} 筆資料，是否繼續？`)) return;
-    state.records = normalized;
-    saveRecords();
-    showToast(`已還原 ${normalized.length} 筆證據`);
+    const workspace = normalizeWorkspace(payload);
+    if (!window.confirm(`將以匯入的研究工作區取代目前資料（含 ${state.workspace.records.length} 筆證據），是否繼續？`)) return;
+    state.workspace = workspace;
+    saveWorkspace();
+    showToast(`已還原 ${workspace.documents.length} 份文件與 ${workspace.records.length} 筆證據`);
   } catch (error) {
     showToast(`匯入失敗：${error.message}`);
   } finally {
@@ -343,13 +468,13 @@ function handleLedgerClick(event) {
   if (!target) return;
   const action = target.dataset.action;
   if (action === "add") return openDialog();
-  const record = state.records.find((item) => item.id === target.dataset.id);
+  const record = state.workspace.records.find((item) => item.id === target.dataset.id);
   if (!record) return;
   if (action === "copy") copyCitation(record);
   if (action === "edit") openDialog(record);
   if (action === "delete" && window.confirm(`確定刪除 ${record.id}？此操作無法復原。`)) {
-    state.records = state.records.filter((item) => item.id !== record.id);
-    saveRecords();
+    state.workspace.records = state.workspace.records.filter((item) => item.id !== record.id);
+    saveWorkspace();
     showToast("證據已刪除");
   }
 }
@@ -357,6 +482,18 @@ function handleLedgerClick(event) {
 function bindEvents() {
   window.addEventListener("hashchange", () => setActivePanel(location.hash.slice(1)));
   ["#add-evidence", "#hero-add", "#ledger-add"].forEach((selector) => $(selector).addEventListener("click", () => openDialog()));
+  $("#edit-project").addEventListener("click", openProjectDialog);
+  $("#add-document").addEventListener("click", () => openDocumentDialog());
+  $("#document-list").addEventListener("click", handleDocumentClick);
+  $("#close-project-dialog").addEventListener("click", closeProjectDialog);
+  $("#cancel-project-dialog").addEventListener("click", closeProjectDialog);
+  $("#project-form").addEventListener("submit", saveProject);
+  $("#project-dialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) closeProjectDialog(); });
+  $("#close-document-dialog").addEventListener("click", closeDocumentDialog);
+  $("#cancel-document-dialog").addEventListener("click", closeDocumentDialog);
+  $("#document-form").addEventListener("submit", saveDocument);
+  $("#delete-document").addEventListener("click", deleteDocument);
+  $("#document-dialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) closeDocumentDialog(); });
   $("#map-add").addEventListener("click", () => { location.hash = "evidence"; openDialog(); });
   $("#close-dialog").addEventListener("click", closeDialog);
   $("#cancel-dialog").addEventListener("click", closeDialog);

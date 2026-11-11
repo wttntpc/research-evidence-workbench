@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="把研究問題、原文證據、文獻關係與寫作引用串成可回查的本機研究工作流。" />
-    <title>研究證據工作台</title>
+    <meta name="description" content="把研究計畫、研究文件、原文證據與下一步集中管理，可選擇以 Supabase 私人同步。" />
+    <title>研究指揮中心</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要內容</a>
     <header class="site-header">
       <div class="header-inner">
-        <a class="brand" href="#workflow" aria-label="研究證據工作台首頁">
-          <span class="brand-mark" aria-hidden="true">證</span>
-          <span><strong>研究證據工作台</strong><small>Evidence-first research workspace</small></span>
+        <a class="brand" href="#workflow" aria-label="研究指揮中心首頁">
+          <span class="brand-mark" aria-hidden="true">研</span>
+          <span><strong>研究指揮中心</strong><small>Research command center</small></span>
         </a>
         <div class="header-actions">
           <span class="privacy-badge">● 僅存於本機</span>
@@ -24,7 +24,7 @@
 
     <nav class="tab-bar" aria-label="主要功能">
       <div class="tab-inner">
-        <a class="tab active" href="#workflow" data-tab="workflow">工作流</a>
+        <a class="tab active" href="#workflow" data-tab="workflow">研究中心</a>
         <a class="tab" href="#evidence" data-tab="evidence">證據台帳 <span id="nav-count">0</span></a>
         <a class="tab" href="#map" data-tab="map">文獻地圖</a>
         <a class="tab" href="#export" data-tab="export">匯出與交接</a>
@@ -32,14 +32,20 @@
     </nav>
 
     <main id="main">
-      <section class="panel hero-panel active" id="workflow" data-panel="workflow">
-        <div class="hero-copy">
-          <p class="eyebrow">從「找到論文」到「寫進論文」</p>
-          <h1>每個說法，<br /><em>都對得回原文。</em></h1>
-          <p class="lead">保存逐字原文、頁碼與來源，把 AI 解釋放在另一欄。先查證，再引用；讓搜尋、閱讀、筆記與寫作共用同一條證據鏈。</p>
+      <section class="panel command-center active" id="workflow" data-panel="workflow">
+        <div class="project-hero">
+          <div>
+            <p class="eyebrow">Research command center</p>
+            <h1 id="project-title">尚未建立研究計畫</h1>
+            <p class="lead" id="project-question">先建立研究題目與核心問題，工作台會替您準備常用研究文件。</p>
+            <div class="project-meta">
+              <span><small>目前階段</small><strong id="project-stage">尚未設定</strong></span>
+              <span class="next-action"><small>下一步</small><strong id="project-next-action">建立研究計畫</strong></span>
+            </div>
+          </div>
           <div class="hero-actions">
-            <button class="button primary large" id="hero-add" type="button">建立第一筆證據</button>
-            <a class="button secondary large" href="#evidence">查看證據台帳</a>
+            <button class="button primary large" id="edit-project" type="button">設定研究計畫</button>
+            <button class="button secondary large" id="hero-add" type="button">＋ 新增證據</button>
           </div>
         </div>
         <aside class="hero-summary" aria-label="資料摘要">
@@ -54,17 +60,11 @@
           <p class="summary-note">完整度依「原文＋頁碼／章節＋來源＋人工查證」計算。</p>
         </aside>
 
-        <div class="section-heading full-width">
-          <p class="eyebrow">建議流程</p>
-          <h2>五道關卡，避免 AI 摘要變成假證據</h2>
+        <div class="section-heading full-width split-heading">
+          <div><p class="eyebrow">Research documents</p><h2>研究文件</h2><p>點一下就能開啟、編輯與保存，不用再到資料夾找檔案。</p></div>
+          <button class="button secondary" id="add-document" type="button">＋ 新增文件</button>
         </div>
-        <ol class="workflow-grid full-width">
-          <li class="workflow-card"><span class="step">01</span><h3>探索</h3><p>用 Google Scholar、Elicit、Consensus 找候選文獻與相反證據。</p><small>產出：候選文獻清單</small></li>
-          <li class="workflow-card"><span class="step">02</span><h3>取得</h3><p>在 Zotero 保存書目與 PDF，補 DOI、作者、年份及正式來源。</p><small>產出：可辨識的全文</small></li>
-          <li class="workflow-card"><span class="step">03</span><h3>擷取</h3><p>逐字保存原文與頁碼；翻譯、SciSpace 或 AI 解釋另欄記錄。</p><small>產出：證據卡</small></li>
-          <li class="workflow-card"><span class="step">04</span><h3>連結</h3><p>標示核心文獻、引用關係與未讀推薦，建立 Obsidian 文獻地圖。</p><small>產出：研究脈絡</small></li>
-          <li class="workflow-card"><span class="step">05</span><h3>寫作與稽核</h3><p>在 Word 用 Zotero 引用；透過證據編號回查原文、語境與限制。</p><small>產出：可稽核論述</small></li>
-        </ol>
+        <div id="document-list" class="document-grid full-width" aria-live="polite"></div>
 
         <div class="guardrail full-width">
           <div class="guardrail-icon" aria-hidden="true">!</div>
@@ -123,6 +123,34 @@
         </div>
       </section>
     </main>
+
+    <dialog id="project-dialog">
+      <form id="project-form" method="dialog">
+        <div class="dialog-header"><div><p class="eyebrow">Project profile</p><h2>研究計畫設定</h2></div><button class="icon-button" id="close-project-dialog" type="button" aria-label="關閉">×</button></div>
+        <div class="form-grid">
+          <label class="span-2">研究名稱<input name="title" required placeholder="例：運動、情緒與認知研究" /></label>
+          <label class="span-2">核心研究問題<textarea name="primaryQuestion" rows="3" placeholder="用一句話寫出目前最重要的研究問題"></textarea></label>
+          <label>目前階段<input name="stage" placeholder="例：文獻探索、研究設計、資料分析" /></label>
+          <label>下一步<input name="nextAction" placeholder="例：完成第一版搜尋策略" /></label>
+        </div>
+        <div class="dialog-footer"><p>第一次建立計畫時會一併建立常用研究文件，可再自行增刪。</p><div><button class="button secondary" id="cancel-project-dialog" type="button">取消</button><button class="button primary" type="submit">儲存計畫</button></div></div>
+      </form>
+    </dialog>
+
+    <dialog id="document-dialog" class="document-dialog">
+      <form id="document-form" method="dialog">
+        <div class="dialog-header"><div><p class="eyebrow">Research document</p><h2 id="document-dialog-title">研究文件</h2></div><button class="icon-button" id="close-document-dialog" type="button" aria-label="關閉">×</button></div>
+        <input name="editingId" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2">文件名稱<input name="title" required /></label>
+          <label>類型<select name="type"><option value="plan">研究計畫</option><option value="passport">研究護照</option><option value="search">搜尋策略</option><option value="matrix">文獻矩陣</option><option value="analysis">分析計畫</option><option value="note">一般筆記</option></select></label>
+          <label>狀態<select name="status"><option value="draft">草稿</option><option value="active">進行中</option><option value="complete">已完成</option><option value="archived">封存</option></select></label>
+          <label class="span-2">摘要<input name="summary" placeholder="這份文件的用途或目前進度" /></label>
+          <label class="span-2 document-content">內容<textarea name="content" rows="18" placeholder="可直接貼上或撰寫 Markdown 內容"></textarea></label>
+        </div>
+        <div class="dialog-footer"><p>內容會與整個研究工作區一起備份；啟用 Supabase 後可跨電腦同步。</p><div><button class="button danger" id="delete-document" type="button">刪除</button><button class="button secondary" id="cancel-document-dialog" type="button">取消</button><button class="button primary" type="submit">儲存文件</button></div></div>
+      </form>
+    </dialog>
 
     <dialog id="evidence-dialog">
       <form id="evidence-form" method="dialog">

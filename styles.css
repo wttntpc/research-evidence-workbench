@@ -61,6 +61,15 @@ main { padding-block: 38px 72px; }
 @keyframes fade-in { from { opacity: .35; transform: translateY(4px); } }
 
 .hero-panel.active { display: grid; grid-template-columns: 1.35fr .65fr; gap: 26px; align-items: center; }
+.command-center.active { display: grid; grid-template-columns: 1.35fr .65fr; gap: 26px; align-items: start; }
+.project-hero { min-height: 330px; display: flex; flex-direction: column; justify-content: space-between; padding: 34px; border: 1px solid #cdd9d6; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+.project-hero h1 { max-width: 780px; margin-bottom: 10px; font-size: clamp(2rem, 4.2vw, 3.7rem); }
+.project-hero .lead { max-width: 760px; }
+.project-meta { display: grid; grid-template-columns: minmax(150px, .6fr) minmax(240px, 1.4fr); gap: 10px; margin-top: 24px; }
+.project-meta span { display: grid; gap: 3px; min-height: 76px; padding: 13px 15px; border-radius: 12px; background: #f1f4f2; }
+.project-meta .next-action { border-left: 4px solid var(--orange); background: #fff7ed; }
+.project-meta small { color: var(--muted); font-size: .72rem; }
+.project-meta strong { line-height: 1.4; }
 .hero-copy { padding: 44px 28px 44px 6px; }
 .eyebrow { color: var(--teal); margin: 0 0 7px; text-transform: uppercase; letter-spacing: .13em; font-size: .75rem; font-weight: 900; }
 h1, h2, h3, p { margin-top: 0; }
@@ -81,6 +90,17 @@ h1 em { color: var(--teal); font-style: normal; }
 .full-width { grid-column: 1 / -1; }
 .section-heading { margin-top: 46px; }
 .section-heading h2, .page-heading h1 { margin-bottom: 7px; font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.025em; }
+.split-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.split-heading p:last-child { color: var(--muted); margin-bottom: 0; }
+.document-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
+.document-card { min-height: 190px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 19px; border: 1px solid var(--line); border-radius: 15px; color: var(--ink); background: var(--surface); cursor: pointer; box-shadow: 0 4px 12px rgb(24 36 58 / .04); transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+.document-card:hover { transform: translateY(-2px); border-color: #7fafaa; box-shadow: 0 10px 24px rgb(24 36 58 / .08); }
+.document-card:focus-visible { outline: 3px solid rgb(231 107 45 / .33); outline-offset: 2px; }
+.document-type { margin-bottom: 20px; padding: 3px 8px; border-radius: 999px; color: var(--teal-dark); background: var(--teal-soft); font-size: .7rem; font-weight: 900; }
+.document-card strong { font-size: 1.08rem; }
+.document-card > span:not(.document-type) { color: var(--muted); margin-top: 5px; font-size: .82rem; }
+.document-card small { color: var(--muted); margin-top: auto; padding-top: 18px; font-size: .7rem; }
+.document-empty { grid-column: 1 / -1; }
 .workflow-grid { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .workflow-card { position: relative; min-height: 220px; padding: 19px 17px; background: var(--surface); border: 1px solid var(--line); border-radius: 15px; }
 .workflow-card:not(:last-child)::after { content: "→"; position: absolute; z-index: 2; right: -12px; top: 43px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--teal); font-size: .75rem; }
@@ -186,6 +206,8 @@ dialog::backdrop { background: rgb(13 29 40 / .7); backdrop-filter: blur(3px); }
 .form-grid input, .form-grid textarea, .form-grid select { width: 100%; padding: 9px 11px; font-weight: 500; resize: vertical; }
 .form-grid .span-2 { grid-column: 1 / -1; }
 .form-grid small { color: var(--muted); font-weight: 500; }
+.document-dialog { width: min(980px, calc(100% - 24px)); }
+.document-content textarea { min-height: 360px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; line-height: 1.6; }
 .quote-field { padding: 12px; border-radius: 12px; background: #eef7f4; }
 .quote-field textarea { border-color: #82b5ae; }
 .interpretation-field { padding: 12px; border-radius: 12px; background: #f3f0f8; }
@@ -203,6 +225,8 @@ dialog::backdrop { background: rgb(13 29 40 / .7); backdrop-filter: blur(3px); }
 
 @media (max-width: 900px) {
   .hero-panel.active { grid-template-columns: 1fr; }
+  .command-center.active { grid-template-columns: 1fr; }
+  .document-grid { grid-template-columns: 1fr 1fr; }
   .hero-copy { padding-bottom: 0; }
   .workflow-grid { grid-template-columns: 1fr 1fr; }
   .workflow-card { min-height: 190px; }
@@ -219,6 +243,10 @@ dialog::backdrop { background: rgb(13 29 40 / .7); backdrop-filter: blur(3px); }
   .header-actions .button { padding-inline: 11px; font-size: .8rem; }
   main { padding-top: 26px; }
   .hero-copy { padding: 20px 0 0; }
+  .project-hero { min-height: auto; padding: 22px 18px; }
+  .project-meta { grid-template-columns: 1fr; }
+  .split-heading { align-items: stretch; flex-direction: column; }
+  .document-grid { grid-template-columns: 1fr; }
   h1 { font-size: 2.25rem; }
   .workflow-grid { grid-template-columns: 1fr; }
   .workflow-card { min-height: 170px; }

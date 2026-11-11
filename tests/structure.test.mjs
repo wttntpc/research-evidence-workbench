@@ -31,6 +31,22 @@ test("cross-device handoff explains local storage and JSON transfer", () => {
   assert.match(html, /匯入會取代/);
 });
 
+test("research command center exposes project, next action, and clickable documents", () => {
+  for (const id of ["project-title", "project-stage", "project-next-action", "document-list", "edit-project", "add-document"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /研究指揮中心/);
+  assert.match(html, /研究文件/);
+});
+
+test("project and document dialogs provide editable fields", () => {
+  for (const field of ["title", "primaryQuestion", "stage", "nextAction"]) {
+    assert.match(html, new RegExp(`name="${field}"`));
+  }
+  assert.match(html, /id="document-dialog"/);
+  assert.match(html, /name="content"/);
+});
+
 test("page does not load third-party scripts or styles", () => {
   const sources = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(sources.some((source) => /^https?:\/\//i.test(source)), false);
