@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="把研究問題、原文證據、文獻關係與寫作引用串成可回查的本機研究工作流。" />
+    <title>研究證據工作台｜免安裝可攜版</title>
+    <style>
+:root {
+  --ink: #18243a;
+  --muted: #647084;
+  --paper: #f7f4ed;
+  --surface: #fffefb;
+  --line: #dce1e3;
+  --teal: #126c68;
+  --teal-dark: #0a504d;
+  --teal-soft: #e1f1ed;
+  --orange: #e76b2d;
+  --gold: #d5a225;
+  --purple: #7659a8;
+  --danger: #b23c37;
+  --shadow: 0 14px 36px rgb(24 36 58 / 0.09);
+  --radius: 18px;
+  font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: var(--paper); color: var(--ink); line-height: 1.65; }
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: var(--teal-dark); }
+.skip-link { position: fixed; z-index: 100; top: 8px; left: 8px; transform: translateY(-150%); background: var(--ink); color: white; padding: 8px 12px; border-radius: 8px; }
+.skip-link:focus { transform: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.site-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+.header-inner, .tab-inner, main { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
+.header-inner { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.brand { color: inherit; display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: white; background: var(--teal); font-weight: 900; box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.12); }
+.brand strong, .brand small { display: block; }
+.brand strong { font-size: 1.06rem; letter-spacing: .04em; }
+.brand small { color: var(--muted); font-size: .72rem; letter-spacing: .03em; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.privacy-badge { color: var(--teal-dark); background: var(--teal-soft); padding: 6px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; }
+
+.button { min-height: 42px; border: 1px solid transparent; border-radius: 11px; padding: 9px 16px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.button:hover { transform: translateY(-1px); }
+.button:focus-visible, .icon-button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .tab:focus-visible { outline: 3px solid rgb(231 107 45 / .33); outline-offset: 2px; }
+.button.primary { background: var(--teal); color: white; box-shadow: 0 7px 16px rgb(18 108 104 / .18); }
+.button.primary:hover { background: var(--teal-dark); }
+.button.secondary { color: var(--ink); background: white; border-color: #b8c2c8; }
+.button.secondary:hover { border-color: var(--teal); }
+.button.large { min-height: 50px; padding-inline: 21px; }
+.button.danger { color: var(--danger); background: #fff7f6; border-color: #efc4c0; }
+
+.tab-bar { position: sticky; top: 0; z-index: 20; background: rgb(255 254 251 / .94); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+.tab-inner { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.tab { flex: 0 0 auto; color: var(--muted); padding: 13px 17px 11px; border-bottom: 3px solid transparent; text-decoration: none; font-size: .92rem; font-weight: 800; }
+.tab:hover, .tab.active { color: var(--teal-dark); border-color: var(--orange); }
+.tab span { background: #edf0f1; border-radius: 999px; padding: 1px 7px; font-size: .75rem; }
+
+main { padding-block: 38px 72px; }
+.panel { display: none; }
+.panel.active { display: block; animation: fade-in .22s ease-out; }
+@keyframes fade-in { from { opacity: .35; transform: translateY(4px); } }
+
+.hero-panel.active { display: grid; grid-template-columns: 1.35fr .65fr; gap: 26px; align-items: center; }
+.hero-copy { padding: 44px 28px 44px 6px; }
+.eyebrow { color: var(--teal); margin: 0 0 7px; text-transform: uppercase; letter-spacing: .13em; font-size: .75rem; font-weight: 900; }
+h1, h2, h3, p { margin-top: 0; }
+h1 { margin-bottom: 18px; font-size: clamp(2.15rem, 5vw, 4.35rem); line-height: 1.12; letter-spacing: -.04em; }
+h1 em { color: var(--teal); font-style: normal; }
+.lead { max-width: 720px; color: #48556a; font-size: 1.08rem; }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+.hero-summary { padding: 25px; border: 1px solid #d1dbd9; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+.summary-heading { display: flex; justify-content: space-between; align-items: baseline; font-weight: 800; }
+.summary-heading strong { color: var(--teal); font-size: 1.8rem; }
+.progress { height: 8px; border-radius: 99px; overflow: hidden; background: #e9ecea; margin: 9px 0 24px; }
+.progress span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, var(--teal), #3aa19a); transition: width .4s ease; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.stats-grid div { padding: 13px; border-radius: 12px; background: #f1f4f2; }
+.stats-grid dt { color: var(--muted); font-size: .76rem; }
+.stats-grid dd { margin: 2px 0 0; font-size: 1.36rem; font-weight: 900; }
+.summary-note { color: var(--muted); font-size: .76rem; margin: 15px 0 0; }
+.full-width { grid-column: 1 / -1; }
+.section-heading { margin-top: 46px; }
+.section-heading h2, .page-heading h1 { margin-bottom: 7px; font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.025em; }
+.workflow-grid { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.workflow-card { position: relative; min-height: 220px; padding: 19px 17px; background: var(--surface); border: 1px solid var(--line); border-radius: 15px; }
+.workflow-card:not(:last-child)::after { content: "→"; position: absolute; z-index: 2; right: -12px; top: 43px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--teal); font-size: .75rem; }
+.workflow-card .step { color: var(--orange); font-size: .72rem; font-weight: 900; letter-spacing: .11em; }
+.workflow-card h3 { margin: 12px 0 6px; font-size: 1.14rem; }
+.workflow-card p { color: #526073; font-size: .86rem; }
+.workflow-card small { position: absolute; left: 17px; right: 17px; bottom: 16px; color: var(--teal-dark); border-top: 1px solid var(--line); padding-top: 9px; font-weight: 800; }
+.guardrail { display: grid; grid-template-columns: auto 1fr; gap: 16px; margin-top: 20px; padding: 20px 22px; border: 1px solid #efd08f; border-radius: 15px; background: #fff8e8; }
+.guardrail-icon { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--orange); font-weight: 900; }
+.guardrail h3 { margin-bottom: 3px; }
+.guardrail p { color: #625640; margin: 0; }
+
+.page-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 27px; }
+.page-heading p:last-child { color: var(--muted); margin-bottom: 0; }
+.toolbar { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; padding: 12px; border-radius: 15px; background: #e8eeeb; }
+.search-box { display: flex; align-items: center; gap: 8px; padding-inline: 12px; background: white; border: 1px solid #c8d1d1; border-radius: 10px; }
+.search-box span { color: var(--teal); font-size: 1.35rem; }
+.search-box input { width: 100%; border: 0; outline: 0; padding: 10px 0; background: transparent; }
+select, input, textarea { color: var(--ink); border: 1px solid #bdc7ca; border-radius: 9px; background: white; }
+.toolbar select { min-height: 44px; padding: 8px 34px 8px 12px; }
+.toggle { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-weight: 750; }
+.toolbar .toggle { min-height: 44px; padding: 8px 12px; border: 1px solid #c8d1d1; border-radius: 10px; background: white; }
+.toggle input { accent-color: var(--teal); width: 18px; height: 18px; }
+.result-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: .8rem; margin: 15px 2px 8px; }
+.evidence-list { display: grid; gap: 12px; }
+.evidence-card { display: grid; grid-template-columns: 9px 1fr auto; gap: 17px; padding: 19px 20px 19px 0; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: 0 5px 14px rgb(24 36 58 / .04); }
+.evidence-card .accent { border-radius: 0 6px 6px 0; background: #a8b4b8; }
+.evidence-card[data-status="supported"] .accent { background: var(--teal); }
+.evidence-card[data-status="partial"] .accent { background: var(--gold); }
+.evidence-card[data-status="contradicted"] .accent { background: var(--danger); }
+.card-top { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.evidence-id { color: var(--teal-dark); font-family: ui-monospace, Consolas, monospace; font-size: .78rem; font-weight: 900; }
+.status, .tag { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 8px; border-radius: 999px; background: #eef1f2; color: #4d5969; font-size: .72rem; font-weight: 800; }
+.status.supported { color: #0d5b50; background: #dcefe9; }
+.status.partial { color: #71520a; background: #fff0c6; }
+.status.contradicted { color: #852f2a; background: #f7dfdc; }
+.tag.core { color: #795a00; background: #fff0bd; }
+.tag.unread { color: #594185; background: #eee8f8; border: 1px dashed var(--purple); }
+.evidence-card h2 { margin: 8px 0 5px; font-size: 1.08rem; line-height: 1.45; }
+.paper-line { color: var(--muted); margin-bottom: 10px; font-size: .83rem; }
+.quote { margin: 0 0 9px; padding: 10px 13px; border-left: 3px solid #9cc9c4; background: #f2f7f5; font-family: Georgia, "Noto Serif TC", serif; font-size: .9rem; }
+.interpretation { color: #526073; margin: 0; font-size: .86rem; }
+.interpretation strong { color: var(--purple); }
+.warning-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.warning { color: #825015; background: #fff2d9; border-radius: 7px; padding: 3px 7px; font-size: .7rem; }
+.card-actions { display: flex; flex-direction: column; gap: 7px; align-items: stretch; min-width: 112px; }
+.card-actions .button { min-height: 36px; padding: 6px 10px; font-size: .76rem; }
+.empty-state { text-align: center; padding: 60px 24px; border: 1px dashed #acb9bc; border-radius: 16px; background: rgb(255 255 255 / .45); }
+.empty-state strong, .empty-state span { display: block; }
+.empty-state strong { font-size: 1.2rem; }
+.empty-state span { color: var(--muted); margin: 5px 0 18px; }
+
+.map-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; color: var(--muted); font-size: .8rem; }
+.map-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { display: inline-block; width: 13px; height: 13px; border-radius: 50%; background: #2a7eaa; }
+.dot.core { background: var(--gold); box-shadow: 0 0 0 3px #f9e5a6; }
+.dot.unread { background: white; border: 2px dashed var(--purple); }
+.line { width: 20px; height: 1px; background: #a9b4ba; }
+.map-layout { display: grid; grid-template-columns: 1fr 290px; gap: 16px; }
+.map-canvas { position: relative; min-height: 570px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background-color: var(--surface); background-image: radial-gradient(#d9dfdd 1px, transparent 1px); background-size: 22px 22px; }
+#literature-map { display: block; width: 100%; height: 570px; }
+.map-empty { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.map-empty strong, .map-empty span { display: block; }
+.map-empty span { max-width: 340px; color: var(--muted); font-size: .86rem; }
+.map-guide { align-self: start; padding: 21px; border: 1px solid #d1dbd9; border-radius: 15px; background: #eef5f2; }
+.map-guide h2 { font-size: 1.05rem; }
+.map-guide ol { padding-left: 20px; color: #49596a; font-size: .85rem; }
+.map-guide li + li { margin-top: 8px; }
+.map-guide p { color: var(--muted); margin: 16px 0 0; padding-top: 14px; border-top: 1px solid #cddbd6; font-size: .78rem; }
+code { background: #e2e8e5; border-radius: 5px; padding: 1px 5px; }
+
+.sync-guide { margin-bottom: 18px; padding: 23px; border: 1px solid #80afa9; border-radius: 16px; background: #f2faf7; }
+.sync-guide h2 { margin-bottom: 5px; font-size: 1.25rem; }
+.sync-guide > div > p:last-child { color: var(--muted); margin-bottom: 17px; }
+.sync-guide ol { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0; margin: 0; counter-reset: sync-step; }
+.sync-guide li { position: relative; min-height: 95px; padding: 14px 13px 12px 45px; border: 1px solid #c8ddd8; border-radius: 12px; background: white; counter-increment: sync-step; }
+.sync-guide li::before { content: counter(sync-step); position: absolute; top: 13px; left: 12px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--teal); font-size: .72rem; font-weight: 900; }
+.sync-guide li strong, .sync-guide li span { display: block; }
+.sync-guide li span { color: var(--muted); margin-top: 3px; font-size: .78rem; }
+.sync-caution { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid #c8ddd8; color: #5b4e37; font-size: .78rem; }
+.export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.export-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 15px; min-height: 145px; padding: 21px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.export-card.featured { border-color: #80afa9; background: #f2faf7; }
+.file-icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 12px; color: var(--teal-dark); background: var(--teal-soft); font-family: ui-monospace, monospace; font-weight: 900; }
+.export-card h2 { margin-bottom: 3px; font-size: 1rem; }
+.export-card p { color: var(--muted); margin: 0; font-size: .8rem; }
+.file-button { position: relative; overflow: hidden; }
+.file-button input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.handoff-table { margin-top: 24px; padding: 23px; border-radius: 15px; background: var(--surface); border: 1px solid var(--line); }
+.handoff-table h2 { font-size: 1.12rem; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+th, td { text-align: left; vertical-align: top; padding: 11px; border-bottom: 1px solid var(--line); }
+th { color: var(--teal-dark); background: #f0f5f2; }
+
+dialog { width: min(830px, calc(100% - 24px)); max-height: min(92vh, 930px); padding: 0; border: 0; border-radius: 20px; color: var(--ink); background: var(--surface); box-shadow: 0 28px 90px rgb(0 0 0 / .32); }
+dialog::backdrop { background: rgb(13 29 40 / .7); backdrop-filter: blur(3px); }
+.dialog-header { position: sticky; z-index: 2; top: 0; display: flex; justify-content: space-between; align-items: start; padding: 21px 24px 16px; border-bottom: 1px solid var(--line); background: rgb(255 254 251 / .96); }
+.dialog-header h2 { margin: 0; }
+.icon-button { width: 40px; height: 40px; border: 0; border-radius: 50%; color: var(--muted); background: #edf0f1; cursor: pointer; font-size: 1.5rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 21px 24px; }
+.form-grid label { display: grid; gap: 5px; align-content: start; color: #465368; font-size: .8rem; font-weight: 800; }
+.form-grid input, .form-grid textarea, .form-grid select { width: 100%; padding: 9px 11px; font-weight: 500; resize: vertical; }
+.form-grid .span-2 { grid-column: 1 / -1; }
+.form-grid small { color: var(--muted); font-weight: 500; }
+.quote-field { padding: 12px; border-radius: 12px; background: #eef7f4; }
+.quote-field textarea { border-color: #82b5ae; }
+.interpretation-field { padding: 12px; border-radius: 12px; background: #f3f0f8; }
+.interpretation-field textarea { border-color: #b6a7cc; }
+.required-note, .ai-note { justify-self: start; padding: 2px 7px; border-radius: 999px; font-size: .68rem; }
+.required-note { color: var(--teal-dark); background: #cfe8e2; }
+.ai-note { color: #5e4685; background: #e2daf1; }
+.check-row { display: flex; gap: 22px; padding: 11px 13px; border-radius: 10px; background: #f1f3f3; }
+.dialog-footer { position: sticky; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 14px 24px; border-top: 1px solid var(--line); background: rgb(255 254 251 / .97); }
+.dialog-footer p { max-width: 440px; color: var(--muted); margin: 0; font-size: .75rem; }
+.dialog-footer > div { display: flex; gap: 8px; }
+
+.toast { position: fixed; z-index: 100; right: 20px; bottom: 20px; max-width: min(380px, calc(100% - 40px)); padding: 11px 16px; border-radius: 10px; color: white; background: var(--ink); box-shadow: var(--shadow); opacity: 0; transform: translateY(15px); pointer-events: none; transition: .2s ease; }
+.toast.show { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .hero-panel.active { grid-template-columns: 1fr; }
+  .hero-copy { padding-bottom: 0; }
+  .workflow-grid { grid-template-columns: 1fr 1fr; }
+  .workflow-card { min-height: 190px; }
+  .workflow-card::after { display: none !important; }
+  .map-layout { grid-template-columns: 1fr; }
+  .map-guide { order: -1; }
+  .export-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 650px) {
+  .header-inner, .tab-inner, main { width: min(100% - 24px, 1180px); }
+  .header-inner { min-height: 68px; }
+  .brand small, .privacy-badge { display: none; }
+  .header-actions .button { padding-inline: 11px; font-size: .8rem; }
+  main { padding-top: 26px; }
+  .hero-copy { padding: 20px 0 0; }
+  h1 { font-size: 2.25rem; }
+  .workflow-grid { grid-template-columns: 1fr; }
+  .workflow-card { min-height: 170px; }
+  .page-heading { align-items: start; flex-direction: column; }
+  .toolbar { grid-template-columns: 1fr 1fr; }
+  .search-box { grid-column: 1 / -1; }
+  .evidence-card { grid-template-columns: 7px 1fr; padding-right: 12px; gap: 12px; }
+  .card-actions { grid-column: 2; flex-direction: row; flex-wrap: wrap; }
+  .export-card { grid-template-columns: auto 1fr; }
+  .sync-guide ol { grid-template-columns: 1fr; }
+  .export-card .button { grid-column: 1 / -1; }
+  .form-grid { grid-template-columns: 1fr; padding-inline: 15px; }
+  .form-grid .span-2 { grid-column: auto; }
+  .dialog-header, .dialog-footer { padding-inline: 15px; }
+  .dialog-footer { align-items: stretch; flex-direction: column; }
+  .dialog-footer > div { display: grid; grid-template-columns: 1fr 1fr; }
+  .result-meta { gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+
+</style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要內容</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#workflow" aria-label="研究證據工作台首頁">
+          <span class="brand-mark" aria-hidden="true">證</span>
+          <span><strong>研究證據工作台</strong><small>Evidence-first research workspace</small></span>
+        </a>
+        <div class="header-actions">
+          <span class="privacy-badge">● 僅存於本機</span>
+          <button class="button primary" id="add-evidence" type="button">＋ 新增證據</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tab-bar" aria-label="主要功能">
+      <div class="tab-inner">
+        <a class="tab active" href="#workflow" data-tab="workflow">工作流</a>
+        <a class="tab" href="#evidence" data-tab="evidence">證據台帳 <span id="nav-count">0</span></a>
+        <a class="tab" href="#map" data-tab="map">文獻地圖</a>
+        <a class="tab" href="#export" data-tab="export">匯出與交接</a>
+      </div>
+    </nav>
+
+    <main id="main">
+      <section class="panel hero-panel active" id="workflow" data-panel="workflow">
+        <div class="hero-copy">
+          <p class="eyebrow">從「找到論文」到「寫進論文」</p>
+          <h1>每個說法，<br /><em>都對得回原文。</em></h1>
+          <p class="lead">保存逐字原文、頁碼與來源，把 AI 解釋放在另一欄。先查證，再引用；讓搜尋、閱讀、筆記與寫作共用同一條證據鏈。</p>
+          <div class="hero-actions">
+            <button class="button primary large" id="hero-add" type="button">建立第一筆證據</button>
+            <a class="button secondary large" href="#evidence">查看證據台帳</a>
+          </div>
+        </div>
+        <aside class="hero-summary" aria-label="資料摘要">
+          <div class="summary-heading"><span>研究完整度</span><strong id="completion-rate">0%</strong></div>
+          <div class="progress" aria-hidden="true"><span id="completion-bar"></span></div>
+          <dl class="stats-grid">
+            <div><dt>證據</dt><dd id="stat-total">0</dd></div>
+            <div><dt>已查證</dt><dd id="stat-verified">0</dd></div>
+            <div><dt>核心文獻</dt><dd id="stat-core">0</dd></div>
+            <div><dt>待補定位</dt><dd id="stat-warning">0</dd></div>
+          </dl>
+          <p class="summary-note">完整度依「原文＋頁碼／章節＋來源＋人工查證」計算。</p>
+        </aside>
+
+        <div class="section-heading full-width">
+          <p class="eyebrow">建議流程</p>
+          <h2>五道關卡，避免 AI 摘要變成假證據</h2>
+        </div>
+        <ol class="workflow-grid full-width">
+          <li class="workflow-card"><span class="step">01</span><h3>探索</h3><p>用 Google Scholar、Elicit、Consensus 找候選文獻與相反證據。</p><small>產出：候選文獻清單</small></li>
+          <li class="workflow-card"><span class="step">02</span><h3>取得</h3><p>在 Zotero 保存書目與 PDF，補 DOI、作者、年份及正式來源。</p><small>產出：可辨識的全文</small></li>
+          <li class="workflow-card"><span class="step">03</span><h3>擷取</h3><p>逐字保存原文與頁碼；翻譯、SciSpace 或 AI 解釋另欄記錄。</p><small>產出：證據卡</small></li>
+          <li class="workflow-card"><span class="step">04</span><h3>連結</h3><p>標示核心文獻、引用關係與未讀推薦，建立 Obsidian 文獻地圖。</p><small>產出：研究脈絡</small></li>
+          <li class="workflow-card"><span class="step">05</span><h3>寫作與稽核</h3><p>在 Word 用 Zotero 引用；透過證據編號回查原文、語境與限制。</p><small>產出：可稽核論述</small></li>
+        </ol>
+
+        <div class="guardrail full-width">
+          <div class="guardrail-icon" aria-hidden="true">!</div>
+          <div><h3>AI 可以帶路，不能代替查證</h3><p>搜尋結果、摘要、翻譯與 AI 回答一律預設為「未查證」。只有研究者實際開啟原文、核對語境與定位後，才改為支持、部分支持或反駁。</p></div>
+        </div>
+      </section>
+
+      <section class="panel" id="evidence" data-panel="evidence">
+        <div class="page-heading">
+          <div><p class="eyebrow">Evidence ledger</p><h1>證據台帳</h1><p>搜尋的是你已保存的證據，不會把 AI 解釋冒充成原文。</p></div>
+          <button class="button primary" id="ledger-add" type="button">＋ 新增證據</button>
+        </div>
+        <div class="toolbar" role="search">
+          <label class="search-box"><span aria-hidden="true">⌕</span><span class="sr-only">搜尋證據</span><input id="search" type="search" placeholder="搜尋主張、作者、題名、原文或關鍵字…" /></label>
+          <label><span class="sr-only">查證狀態</span><select id="status-filter"><option value="all">全部狀態</option><option value="unverified">未查證</option><option value="supported">支持</option><option value="partial">部分支持</option><option value="contradicted">反駁</option></select></label>
+          <label class="toggle"><input id="core-filter" type="checkbox" /><span>只看核心</span></label>
+        </div>
+        <div class="result-meta"><span id="result-count">0 筆</span><span id="search-note">相關度高的證據會排在前面</span></div>
+        <div id="evidence-list" class="evidence-list" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" id="map" data-panel="map">
+        <div class="page-heading">
+          <div><p class="eyebrow">Literature map</p><h1>文獻地圖</h1><p>一個節點是一篇文獻；線段表示你在證據卡中記錄的引用關係。</p></div>
+          <button class="button secondary" id="map-add" type="button">管理文獻資料</button>
+        </div>
+        <div class="map-legend" aria-label="圖例"><span><i class="dot core"></i>核心文獻</span><span><i class="dot normal"></i>已取得</span><span><i class="dot unread"></i>推薦／未取得</span><span><i class="line"></i>引用關係</span></div>
+        <div class="map-layout">
+          <div class="map-canvas" id="map-canvas"><svg id="literature-map" role="img" aria-label="文獻引用關係圖"></svg><div class="map-empty" id="map-empty"><strong>尚無文獻節點</strong><span>新增證據並填寫「文獻鍵值」，地圖就會開始形成。</span></div></div>
+          <aside class="map-guide"><h2>怎麼建立關係？</h2><ol><li>每篇文獻設定一個簡短的「文獻鍵值」，例如 <code>wu-2025</code>。</li><li>在「引用的文獻鍵值」填入它引用的文獻，以逗號分隔。</li><li>把最重要的文獻設為核心；尚未取得全文的推薦文獻設為未讀。</li></ol><p>第二階段可接 OpenAlex，自動補候選引用關係；仍需人工確認是否為同一篇文獻。</p></aside>
+        </div>
+      </section>
+
+      <section class="panel" id="export" data-panel="export">
+        <div class="page-heading"><div><p class="eyebrow">Handoff</p><h1>匯出與交接</h1><p>把資料帶到 Zotero、Obsidian、試算表或 Word；原始檔仍由你掌握。</p></div></div>
+        <div class="sync-guide">
+          <div><p class="eyebrow">跨電腦使用</p><h2>網站可以到處開，資料要主動帶著走</h2><p>目前採隱私優先的本機儲存，不會把研究內容自動上傳。離開一台電腦前下載 JSON，到了另一台電腦再匯入，即可完整接續。</p></div>
+          <ol><li><strong>舊電腦</strong><span>下載「完整備份 JSON」</span></li><li><strong>安全傳送</strong><span>放入自己的雲端硬碟或加密隨身碟</span></li><li><strong>新電腦</strong><span>開啟工作台並選擇 JSON 還原</span></li></ol>
+          <p class="sync-caution"><strong>注意：</strong>匯入會取代新電腦瀏覽器內原有紀錄。若兩邊都有新資料，請先各自備份；真正的自動合併同步需要另接 Supabase 等後端。</p>
+        </div>
+        <div class="export-grid">
+          <article class="export-card featured"><span class="file-icon">{ }</span><div><h2>完整備份 JSON</h2><p>保留所有欄位，換電腦或瀏覽器前請先備份；也能再次匯入還原。</p></div><button class="button primary" id="export-json" type="button">下載 JSON</button></article>
+          <article class="export-card"><span class="file-icon">CSV</span><div><h2>證據總表</h2><p>可用 Excel、Google Sheets 或統計工具開啟。</p></div><button class="button secondary" id="export-csv" type="button">下載 CSV</button></article>
+          <article class="export-card"><span class="file-icon">MD</span><div><h2>Obsidian 筆記包</h2><p>每筆證據一份 Markdown，原文、解釋與來源分區保存。</p></div><button class="button secondary" id="export-md" type="button">下載 Markdown</button></article>
+          <article class="export-card"><span class="file-icon">↥</span><div><h2>還原備份</h2><p>匯入本工具匯出的 JSON；匯入前會先檢查資料格式。</p></div><label class="button secondary file-button">選擇 JSON<input id="import-json" type="file" accept="application/json,.json" /></label></article>
+        </div>
+        <div class="handoff-table">
+          <h2>工具分工建議</h2>
+          <div class="table-scroll"><table><thead><tr><th>任務</th><th>建議工具</th><th>進入台帳前的門檻</th></tr></thead><tbody>
+            <tr><td>找候選文獻</td><td>Google Scholar、Elicit、Consensus</td><td>確認正式題名、作者、年份與來源</td></tr>
+            <tr><td>管理全文與引用</td><td>Zotero</td><td>PDF 與書目相符，記錄 DOI／Zotero key</td></tr>
+            <tr><td>理解難段落</td><td>SciSpace、翻譯工具、NotebookLM</td><td>輸出只能放「解釋」，不可覆蓋原文</td></tr>
+            <tr><td>知識連結</td><td>Obsidian、OpenAlex</td><td>區分已取得、核心與推薦／未讀</td></tr>
+            <tr><td>正式寫作</td><td>Word ＋ Zotero</td><td>引用前核對證據編號、原文與頁碼</td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="evidence-dialog">
+      <form id="evidence-form" method="dialog">
+        <div class="dialog-header"><div><p class="eyebrow">Traceable evidence</p><h2 id="dialog-title">新增證據</h2></div><button class="icon-button" id="close-dialog" type="button" aria-label="關閉">×</button></div>
+        <input name="editingId" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2">研究問題<textarea name="researchQuestion" rows="2" placeholder="例：運動防護介入對大學生動態平衡有何影響？"></textarea></label>
+          <label class="span-2">準備支持或檢驗的主張<textarea name="claim" rows="2" required placeholder="一句可被證據支持或反駁的陳述"></textarea></label>
+          <label class="span-2">文獻題名<input name="title" required /></label>
+          <label>作者<input name="authors" placeholder="Wu & Chen" /></label>
+          <label>年份<input name="year" inputmode="numeric" placeholder="2025" /></label>
+          <label>DOI<input name="doi" placeholder="10.xxxx/xxxxx" /></label>
+          <label>文獻鍵值<input name="paperKey" placeholder="wu-2025" /></label>
+          <label>頁碼<input name="page" placeholder="9 或 9–11" /></label>
+          <label>章節<input name="section" placeholder="Results / 3.2" /></label>
+          <label class="span-2">原文來源連結<input name="sourceUrl" type="url" placeholder="https://…" /></label>
+          <label class="span-2 quote-field">原文逐字內容 <span class="required-note">證據本體</span><textarea name="quote" rows="5" placeholder="貼上原文；不要把翻譯或 AI 改寫混在這裡"></textarea></label>
+          <label class="span-2 interpretation-field">翻譯／白話解釋／研究者註記 <span class="ai-note">不是原文</span><textarea name="interpretation" rows="4" placeholder="可記錄 AI 協助理解的內容，但引用前仍需回原文"></textarea></label>
+          <label>查證狀態<select name="status"><option value="unverified">未查證</option><option value="supported">支持</option><option value="partial">部分支持</option><option value="contradicted">反駁</option></select></label>
+          <label>關鍵字<input name="keywords" placeholder="平衡, 運動防護, 介入" /></label>
+          <label class="span-2">適用範圍與限制<textarea name="limitations" rows="3" placeholder="樣本、研究設計、族群、可推論範圍…"></textarea></label>
+          <label class="span-2">引用的文獻鍵值<input name="cites" placeholder="chen-2023, lin-2021" /><small>用逗號分隔；用於文獻地圖畫線。</small></label>
+          <div class="check-row span-2"><label class="toggle"><input name="core" type="checkbox" /><span>核心文獻</span></label><label class="toggle"><input name="unread" type="checkbox" /><span>推薦／尚未取得全文</span></label></div>
+        </div>
+        <div class="dialog-footer"><p>新紀錄預設「未查證」。來源定位不完整時會顯示警告。</p><div><button class="button secondary" id="cancel-dialog" type="button">取消</button><button class="button primary" type="submit">儲存證據</button></div></div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+const STATUSES = new Set(["unverified", "supported", "partial", "contradicted"]);
+
+const TEXT_FIELDS = [
+  "researchQuestion",
+  "claim",
+  "title",
+  "authors",
+  "year",
+  "doi",
+  "paperKey",
+  "page",
+  "section",
+  "sourceUrl",
+  "quote",
+  "interpretation",
+  "limitations",
+  "keywords",
+];
+
+const CSV_FIELDS = [
+  "id",
+  "researchQuestion",
+  "claim",
+  "title",
+  "authors",
+  "year",
+  "doi",
+  "paperKey",
+  "page",
+  "section",
+  "sourceUrl",
+  "quote",
+  "interpretation",
+  "status",
+  "limitations",
+  "keywords",
+  "core",
+  "unread",
+  "cites",
+  "createdAt",
+  "updatedAt",
+];
+
+function clean(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+function asBoolean(value) {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
+function asList(value) {
+  if (Array.isArray(value)) {
+    return value.map(clean).filter(Boolean);
+  }
+  return clean(value)
+    .split(/[,，\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function pad(value, width) {
+  return String(value).padStart(width, "0");
+}
+
+function generateEvidenceId(date = new Date(), queryNumber = 1, records = []) {
+  const stamp = [date.getFullYear(), pad(date.getMonth() + 1, 2), pad(date.getDate(), 2)].join("");
+  const query = `Q${pad(Math.max(1, Number(queryNumber) || 1), 2)}`;
+  const prefix = `${stamp}-${query}-E`;
+  const sequence = records.reduce((highest, record) => {
+    const id = clean(record?.id);
+    if (!id.startsWith(prefix)) return highest;
+    const parsed = Number(id.slice(prefix.length));
+    return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
+  }, 0) + 1;
+
+  return `${prefix}${pad(sequence, 3)}`;
+}
+
+function normalizeEvidence(input = {}) {
+  const now = new Date().toISOString();
+  const record = {};
+  for (const field of TEXT_FIELDS) record[field] = clean(input[field]);
+
+  record.id = clean(input.id);
+  record.status = STATUSES.has(input.status) ? input.status : "unverified";
+  record.core = asBoolean(input.core);
+  record.unread = asBoolean(input.unread);
+  record.cites = asList(input.cites);
+  record.createdAt = clean(input.createdAt) || now;
+  record.updatedAt = clean(input.updatedAt) || now;
+  return record;
+}
+
+function searchableText(record) {
+  return TEXT_FIELDS.map((field) => clean(record[field])).join(" \n").toLocaleLowerCase("zh-Hant");
+}
+
+function scoreEvidenceMatch(record, query) {
+  const normalizedQuery = clean(query).toLocaleLowerCase("zh-Hant");
+  if (!normalizedQuery) return 1;
+
+  const haystack = searchableText(record);
+  const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  if (tokens.some((token) => !haystack.includes(token))) return 0;
+
+  let score = tokens.length * 2;
+  if (haystack.includes(normalizedQuery)) score += 12;
+  if (clean(record.title).toLocaleLowerCase("zh-Hant").includes(normalizedQuery)) score += 8;
+  if (clean(record.claim).toLocaleLowerCase("zh-Hant").includes(normalizedQuery)) score += 6;
+  if (clean(record.quote).toLocaleLowerCase("zh-Hant").includes(normalizedQuery)) score += 5;
+  if (record.core) score += 1;
+  return score;
+}
+
+function buildCitationText(input) {
+  const record = normalizeEvidence(input);
+  const authorYear = [record.authors || "作者未填", record.year || "年份未填"].join(", ");
+  const locator = [record.page ? `p. ${record.page}` : "頁碼未填", record.section]
+    .filter(Boolean)
+    .join(", ");
+  const source = record.sourceUrl ? ` ${record.sourceUrl}` : "";
+  return `${record.claim || "〔待撰寫主張〕"}（${authorYear}；${locator}；證據 ${record.id || "未編號"}）${source}`;
+}
+
+function csvCell(value) {
+  const text = Array.isArray(value) ? value.join(" | ") : String(value ?? "");
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+function toCsv(records) {
+  const rows = [CSV_FIELDS.join(",")];
+  for (const input of records) {
+    const record = normalizeEvidence(input);
+    rows.push(CSV_FIELDS.map((field) => csvCell(record[field])).join(","));
+  }
+  return `\uFEFF${rows.join("\r\n")}`;
+}
+
+function validateEvidence(input) {
+  const record = normalizeEvidence(input);
+  const warnings = [];
+  if (!record.quote) warnings.push("尚未保存原文逐字內容");
+  if (!record.page && !record.section) warnings.push("尚未填寫頁碼或章節");
+  if (!record.sourceUrl && !record.doi && !record.paperKey) warnings.push("缺少可回查的來源連結、DOI 或文獻鍵值");
+  if (record.status !== "unverified" && warnings.length) warnings.push("資料定位未完整，不建議標示為已查證");
+  return warnings;
+}
+
+function toMarkdown(recordInput) {
+  const record = normalizeEvidence(recordInput);
+  const tags = asList(record.keywords).map((tag) => tag.replace(/\s+/g, "-").toLocaleLowerCase("zh-Hant"));
+  return `---
+type: claim
+evidence_id: "${record.id}"
+status: ${record.status}
+paper: "${record.title.replaceAll('"', '\\"')}"
+page: "${record.page}"
+doi: "${record.doi}"
+core: ${record.core}
+tags: [${tags.map((tag) => `"${tag}"`).join(", ")}]
+source_url: "${record.sourceUrl}"
+---
+
+# ${record.claim || record.title || record.id}
+
+## 原文（逐字）
+
+${record.quote || "> 尚未擷取原文"}
+
+## 翻譯／解釋（非原文）
+
+${record.interpretation || "尚未填寫"}
+
+## 來源定位
+
+- 文獻：${record.authors || "作者未填"}（${record.year || "年份未填"}）。${record.title || "題名未填"}
+- 頁碼／章節：${record.page || "—"}${record.section ? `／${record.section}` : ""}
+- DOI：${record.doi || "—"}
+- 來源：${record.sourceUrl || "—"}
+
+## 適用範圍與限制
+
+${record.limitations || "尚未填寫"}
+`;
+}
+
+
+const STORAGE_KEY = "research-evidence-workbench:v1";
+const STATUS_LABELS = {
+  unverified: "未查證",
+  supported: "支持",
+  partial: "部分支持",
+  contradicted: "反駁",
+};
+
+const $ = (selector, root = document) => root.querySelector(selector);
+const $ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const state = { records: loadRecords(), query: "", status: "all", coreOnly: false };
+let toastTimer;
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function loadRecords() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.map(normalizeEvidence) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecords() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+  renderAll();
+}
+
+function showToast(message) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+}
+
+function setActivePanel(name) {
+  const target = ["workflow", "evidence", "map", "export"].includes(name) ? name : "workflow";
+  $('[data-panel]').forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === target));
+  $('[data-tab]').forEach((tab) => {
+    const active = tab.dataset.tab === target;
+    tab.classList.toggle("active", active);
+    if (active) tab.setAttribute("aria-current", "page");
+    else tab.removeAttribute("aria-current");
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (target === "map") requestAnimationFrame(renderMap);
+}
+
+function filteredRecords() {
+  return state.records
+    .map((record) => ({ record, score: scoreEvidenceMatch(record, state.query) }))
+    .filter(({ record, score }) => score > 0 && (state.status === "all" || record.status === state.status) && (!state.coreOnly || record.core))
+    .sort((a, b) => b.score - a.score || b.record.updatedAt.localeCompare(a.record.updatedAt))
+    .map(({ record }) => record);
+}
+
+function locationText(record) {
+  return [record.page && `p. ${record.page}`, record.section].filter(Boolean).join("／") || "尚未定位";
+}
+
+function evidenceCard(record) {
+  const warnings = validateEvidence(record);
+  const safeUrl = /^https?:\/\//i.test(record.sourceUrl) ? record.sourceUrl : "";
+  return `<article class="evidence-card" data-status="${record.status}">
+    <div class="accent" aria-hidden="true"></div>
+    <div>
+      <div class="card-top">
+        <span class="evidence-id">${escapeHtml(record.id)}</span>
+        <span class="status ${record.status}">${STATUS_LABELS[record.status]}</span>
+        ${record.core ? '<span class="tag core">★ 核心</span>' : ""}
+        ${record.unread ? '<span class="tag unread">推薦／未讀</span>' : ""}
+      </div>
+      <h2>${escapeHtml(record.claim || "〔尚未填寫主張〕")}</h2>
+      <p class="paper-line">${escapeHtml(record.authors || "作者未填")}（${escapeHtml(record.year || "年份未填")}） · ${escapeHtml(record.title || "題名未填")} · ${escapeHtml(locationText(record))}</p>
+      <blockquote class="quote">${record.quote ? escapeHtml(record.quote) : "〔尚未保存原文〕"}</blockquote>
+      ${record.interpretation ? `<p class="interpretation"><strong>解釋（非原文）：</strong>${escapeHtml(record.interpretation)}</p>` : ""}
+      ${warnings.length ? `<div class="warning-list">${warnings.map((warning) => `<span class="warning">⚠ ${escapeHtml(warning)}</span>`).join("")}</div>` : ""}
+    </div>
+    <div class="card-actions">
+      <button class="button secondary" type="button" data-action="copy" data-id="${escapeHtml(record.id)}">複製引用</button>
+      ${safeUrl ? `<a class="button secondary" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">開原文 ↗</a>` : ""}
+      <button class="button secondary" type="button" data-action="edit" data-id="${escapeHtml(record.id)}">編輯</button>
+      <button class="button danger" type="button" data-action="delete" data-id="${escapeHtml(record.id)}">刪除</button>
+    </div>
+  </article>`;
+}
+
+function renderLedger() {
+  const records = filteredRecords();
+  $("#result-count").textContent = `${records.length} 筆`;
+  $("#search-note").textContent = state.query ? `搜尋「${state.query}」；所有詞都需出現` : "相關度高的證據會排在前面";
+  $("#evidence-list").innerHTML = records.length
+    ? records.map(evidenceCard).join("")
+    : `<div class="empty-state"><strong>${state.records.length ? "沒有符合條件的證據" : "尚未建立證據"}</strong><span>${state.records.length ? "請調整關鍵字或篩選條件。" : "從一個準備寫進論文的主張開始，保存它的原文與頁碼。"}</span><button class="button primary" type="button" data-action="add">新增證據</button></div>`;
+}
+
+function renderStats() {
+  const total = state.records.length;
+  const verified = state.records.filter((record) => record.status !== "unverified").length;
+  const core = state.records.filter((record) => record.core).length;
+  const warning = state.records.filter((record) => validateEvidence(record).length).length;
+  const complete = state.records.filter((record) => record.quote && (record.page || record.section) && (record.sourceUrl || record.doi || record.paperKey) && record.status !== "unverified").length;
+  const rate = total ? Math.round((complete / total) * 100) : 0;
+  $("#stat-total").textContent = total;
+  $("#stat-verified").textContent = verified;
+  $("#stat-core").textContent = core;
+  $("#stat-warning").textContent = warning;
+  $("#nav-count").textContent = total;
+  $("#completion-rate").textContent = `${rate}%`;
+  $("#completion-bar").style.width = `${rate}%`;
+}
+
+function paperNodes() {
+  const papers = new Map();
+  for (const record of state.records) {
+    const key = record.paperKey || record.doi || record.title;
+    if (!key) continue;
+    const existing = papers.get(key);
+    if (!existing) {
+      papers.set(key, {
+        key,
+        title: record.title || key,
+        authors: record.authors,
+        year: record.year,
+        core: record.core,
+        unread: record.unread,
+        cites: new Set(record.cites),
+        evidenceCount: 1,
+      });
+    } else {
+      existing.core ||= record.core;
+      existing.unread &&= record.unread;
+      record.cites.forEach((citation) => existing.cites.add(citation));
+      existing.evidenceCount += 1;
+    }
+  }
+  return [...papers.values()];
+}
+
+function svgElement(name, attributes = {}) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+  Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
+  return node;
+}
+
+function renderMap() {
+  const svg = $("#literature-map");
+  const nodes = paperNodes();
+  svg.replaceChildren();
+  $("#map-empty").hidden = nodes.length > 0;
+  if (!nodes.length) return;
+
+  const width = Math.max(700, $("#map-canvas").clientWidth || 700);
+  const height = 570;
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const radius = Math.min(width, height) * (nodes.length < 4 ? .24 : .37);
+  const positions = new Map(nodes.map((node, index) => {
+    const angle = nodes.length === 1 ? 0 : (Math.PI * 2 * index) / nodes.length - Math.PI / 2;
+    const scale = nodes.length === 1 ? 0 : 1;
+    return [node.key, { x: centerX + Math.cos(angle) * radius * scale, y: centerY + Math.sin(angle) * radius * scale }];
+  }));
+
+  const edges = svgElement("g", { stroke: "#a7b3b7", "stroke-width": "1.5", opacity: ".72" });
+  for (const node of nodes) {
+    const start = positions.get(node.key);
+    for (const citedKey of node.cites) {
+      const end = positions.get(citedKey);
+      if (!end) continue;
+      edges.append(svgElement("line", { x1: start.x, y1: start.y, x2: end.x, y2: end.y }));
+    }
+  }
+  svg.append(edges);
+
+  for (const node of nodes) {
+    const position = positions.get(node.key);
+    const group = svgElement("g", { tabindex: "0", role: "button", "aria-label": `${node.title}，${node.evidenceCount} 筆證據` });
+    group.style.cursor = "pointer";
+    const circle = svgElement("circle", {
+      cx: position.x,
+      cy: position.y,
+      r: node.core ? 25 : 19,
+      fill: node.unread ? "#fffefb" : node.core ? "#d5a225" : "#2a7eaa",
+      stroke: node.unread ? "#7659a8" : node.core ? "#f0d16e" : "#ffffff",
+      "stroke-width": node.core ? "7" : "3",
+      "stroke-dasharray": node.unread ? "5 4" : "none",
+    });
+    const count = svgElement("text", { x: position.x, y: position.y + 5, "text-anchor": "middle", fill: node.unread ? "#594185" : "white", "font-size": "12", "font-weight": "800" });
+    count.textContent = String(node.evidenceCount);
+    const label = svgElement("text", { x: position.x, y: position.y + 42, "text-anchor": "middle", fill: "#27364a", "font-size": "11", "font-weight": "700" });
+    label.textContent = node.title.length > 26 ? `${node.title.slice(0, 25)}…` : node.title;
+    const openNode = () => {
+      state.query = node.title;
+      $("#search").value = node.title;
+      location.hash = "evidence";
+    };
+    group.addEventListener("click", openNode);
+    group.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") openNode(); });
+    group.append(circle, count, label);
+    svg.append(group);
+  }
+}
+
+function renderAll() {
+  renderStats();
+  renderLedger();
+  renderMap();
+}
+
+function openDialog(record = null) {
+  const form = $("#evidence-form");
+  form.reset();
+  form.elements.editingId.value = record?.id || "";
+  $("#dialog-title").textContent = record ? "編輯證據" : "新增證據";
+  if (record) {
+    for (const [key, value] of Object.entries(record)) {
+      const field = form.elements[key];
+      if (!field) continue;
+      if (field.type === "checkbox") field.checked = Boolean(value);
+      else field.value = Array.isArray(value) ? value.join(", ") : value;
+    }
+  }
+  $("#evidence-dialog").showModal();
+  setTimeout(() => form.elements.researchQuestion.focus(), 0);
+}
+
+function closeDialog() {
+  $("#evidence-dialog").close();
+}
+
+function formRecord(form) {
+  const data = Object.fromEntries(new FormData(form));
+  data.core = form.elements.core.checked;
+  data.unread = form.elements.unread.checked;
+  return data;
+}
+
+function saveForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const input = formRecord(form);
+  const editingId = input.editingId;
+  delete input.editingId;
+  const existing = state.records.find((record) => record.id === editingId);
+  const now = new Date().toISOString();
+  const record = normalizeEvidence({
+    ...existing,
+    ...input,
+    id: existing?.id || generateEvidenceId(new Date(), 1, state.records),
+    createdAt: existing?.createdAt || now,
+    updatedAt: now,
+  });
+  if (existing) state.records = state.records.map((item) => item.id === existing.id ? record : item);
+  else state.records.unshift(record);
+  saveRecords();
+  closeDialog();
+  showToast(existing ? "證據已更新" : `已建立 ${record.id}`);
+}
+
+async function copyCitation(record) {
+  const text = buildCitationText(record);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("已複製可回查的引用文字");
+  } catch {
+    window.prompt("請複製以下文字", text);
+  }
+}
+
+function download(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function stamp() {
+  const date = new Date();
+  return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function exportJson() {
+  const payload = { schema: "research-evidence-workbench/v1", exportedAt: new Date().toISOString(), records: state.records };
+  download(`research-evidence-${stamp()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  showToast("JSON 備份已下載");
+}
+
+function exportCsv() {
+  download(`evidence-ledger-${stamp()}.csv`, toCsv(state.records), "text/csv;charset=utf-8");
+  showToast("CSV 證據總表已下載");
+}
+
+function exportMarkdown() {
+  const content = state.records.map((record) => `${toMarkdown(record)}\n\n---\n`).join("\n");
+  download(`obsidian-evidence-notes-${stamp()}.md`, content || "# 尚無證據\n", "text/markdown;charset=utf-8");
+  showToast("Markdown 筆記已下載");
+}
+
+async function importJson(file) {
+  if (!file) return;
+  try {
+    const payload = JSON.parse(await file.text());
+    const records = Array.isArray(payload) ? payload : payload.records;
+    if (!Array.isArray(records)) throw new Error("找不到 records 陣列");
+    const normalized = records.map(normalizeEvidence).filter((record) => record.id || record.title || record.quote);
+    if (!normalized.length && records.length) throw new Error("沒有可辨識的證據紀錄");
+    if (!window.confirm(`將以 ${normalized.length} 筆匯入資料取代目前 ${state.records.length} 筆資料，是否繼續？`)) return;
+    state.records = normalized;
+    saveRecords();
+    showToast(`已還原 ${normalized.length} 筆證據`);
+  } catch (error) {
+    showToast(`匯入失敗：${error.message}`);
+  } finally {
+    $("#import-json").value = "";
+  }
+}
+
+function handleLedgerClick(event) {
+  const target = event.target.closest("[data-action]");
+  if (!target) return;
+  const action = target.dataset.action;
+  if (action === "add") return openDialog();
+  const record = state.records.find((item) => item.id === target.dataset.id);
+  if (!record) return;
+  if (action === "copy") copyCitation(record);
+  if (action === "edit") openDialog(record);
+  if (action === "delete" && window.confirm(`確定刪除 ${record.id}？此操作無法復原。`)) {
+    state.records = state.records.filter((item) => item.id !== record.id);
+    saveRecords();
+    showToast("證據已刪除");
+  }
+}
+
+function bindEvents() {
+  window.addEventListener("hashchange", () => setActivePanel(location.hash.slice(1)));
+  ["#add-evidence", "#hero-add", "#ledger-add"].forEach((selector) => $(selector).addEventListener("click", () => openDialog()));
+  $("#map-add").addEventListener("click", () => { location.hash = "evidence"; openDialog(); });
+  $("#close-dialog").addEventListener("click", closeDialog);
+  $("#cancel-dialog").addEventListener("click", closeDialog);
+  $("#evidence-form").addEventListener("submit", saveForm);
+  $("#evidence-dialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) closeDialog(); });
+  $("#search").addEventListener("input", (event) => { state.query = event.target.value.trim(); renderLedger(); });
+  $("#status-filter").addEventListener("change", (event) => { state.status = event.target.value; renderLedger(); });
+  $("#core-filter").addEventListener("change", (event) => { state.coreOnly = event.target.checked; renderLedger(); });
+  $("#evidence-list").addEventListener("click", handleLedgerClick);
+  $("#export-json").addEventListener("click", exportJson);
+  $("#export-csv").addEventListener("click", exportCsv);
+  $("#export-md").addEventListener("click", exportMarkdown);
+  $("#import-json").addEventListener("change", (event) => importJson(event.target.files[0]));
+  window.addEventListener("resize", () => { if ($("#map").classList.contains("active")) renderMap(); });
+}
+
+bindEvents();
+renderAll();
+setActivePanel(location.hash.slice(1));
+
+
+</script>
+  </body>
+</html>
+

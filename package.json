@@ -1,0 +1,12 @@
+{
+  "name": "research-evidence-workbench",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:portable": "node scripts/build-portable.mjs",
+    "test": "node --test",
+    "check": "node --check app.js && node --check core.mjs"
+  }
+}
+

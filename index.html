@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="把研究問題、原文證據、文獻關係與寫作引用串成可回查的本機研究工作流。" />
+    <title>研究證據工作台</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要內容</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#workflow" aria-label="研究證據工作台首頁">
+          <span class="brand-mark" aria-hidden="true">證</span>
+          <span><strong>研究證據工作台</strong><small>Evidence-first research workspace</small></span>
+        </a>
+        <div class="header-actions">
+          <span class="privacy-badge">● 僅存於本機</span>
+          <button class="button primary" id="add-evidence" type="button">＋ 新增證據</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tab-bar" aria-label="主要功能">
+      <div class="tab-inner">
+        <a class="tab active" href="#workflow" data-tab="workflow">工作流</a>
+        <a class="tab" href="#evidence" data-tab="evidence">證據台帳 <span id="nav-count">0</span></a>
+        <a class="tab" href="#map" data-tab="map">文獻地圖</a>
+        <a class="tab" href="#export" data-tab="export">匯出與交接</a>
+      </div>
+    </nav>
+
+    <main id="main">
+      <section class="panel hero-panel active" id="workflow" data-panel="workflow">
+        <div class="hero-copy">
+          <p class="eyebrow">從「找到論文」到「寫進論文」</p>
+          <h1>每個說法，<br /><em>都對得回原文。</em></h1>
+          <p class="lead">保存逐字原文、頁碼與來源，把 AI 解釋放在另一欄。先查證，再引用；讓搜尋、閱讀、筆記與寫作共用同一條證據鏈。</p>
+          <div class="hero-actions">
+            <button class="button primary large" id="hero-add" type="button">建立第一筆證據</button>
+            <a class="button secondary large" href="#evidence">查看證據台帳</a>
+          </div>
+        </div>
+        <aside class="hero-summary" aria-label="資料摘要">
+          <div class="summary-heading"><span>研究完整度</span><strong id="completion-rate">0%</strong></div>
+          <div class="progress" aria-hidden="true"><span id="completion-bar"></span></div>
+          <dl class="stats-grid">
+            <div><dt>證據</dt><dd id="stat-total">0</dd></div>
+            <div><dt>已查證</dt><dd id="stat-verified">0</dd></div>
+            <div><dt>核心文獻</dt><dd id="stat-core">0</dd></div>
+            <div><dt>待補定位</dt><dd id="stat-warning">0</dd></div>
+          </dl>
+          <p class="summary-note">完整度依「原文＋頁碼／章節＋來源＋人工查證」計算。</p>
+        </aside>
+
+        <div class="section-heading full-width">
+          <p class="eyebrow">建議流程</p>
+          <h2>五道關卡，避免 AI 摘要變成假證據</h2>
+        </div>
+        <ol class="workflow-grid full-width">
+          <li class="workflow-card"><span class="step">01</span><h3>探索</h3><p>用 Google Scholar、Elicit、Consensus 找候選文獻與相反證據。</p><small>產出：候選文獻清單</small></li>
+          <li class="workflow-card"><span class="step">02</span><h3>取得</h3><p>在 Zotero 保存書目與 PDF，補 DOI、作者、年份及正式來源。</p><small>產出：可辨識的全文</small></li>
+          <li class="workflow-card"><span class="step">03</span><h3>擷取</h3><p>逐字保存原文與頁碼；翻譯、SciSpace 或 AI 解釋另欄記錄。</p><small>產出：證據卡</small></li>
+          <li class="workflow-card"><span class="step">04</span><h3>連結</h3><p>標示核心文獻、引用關係與未讀推薦，建立 Obsidian 文獻地圖。</p><small>產出：研究脈絡</small></li>
+          <li class="workflow-card"><span class="step">05</span><h3>寫作與稽核</h3><p>在 Word 用 Zotero 引用；透過證據編號回查原文、語境與限制。</p><small>產出：可稽核論述</small></li>
+        </ol>
+
+        <div class="guardrail full-width">
+          <div class="guardrail-icon" aria-hidden="true">!</div>
+          <div><h3>AI 可以帶路，不能代替查證</h3><p>搜尋結果、摘要、翻譯與 AI 回答一律預設為「未查證」。只有研究者實際開啟原文、核對語境與定位後，才改為支持、部分支持或反駁。</p></div>
+        </div>
+      </section>
+
+      <section class="panel" id="evidence" data-panel="evidence">
+        <div class="page-heading">
+          <div><p class="eyebrow">Evidence ledger</p><h1>證據台帳</h1><p>搜尋的是你已保存的證據，不會把 AI 解釋冒充成原文。</p></div>
+          <button class="button primary" id="ledger-add" type="button">＋ 新增證據</button>
+        </div>
+        <div class="toolbar" role="search">
+          <label class="search-box"><span aria-hidden="true">⌕</span><span class="sr-only">搜尋證據</span><input id="search" type="search" placeholder="搜尋主張、作者、題名、原文或關鍵字…" /></label>
+          <label><span class="sr-only">查證狀態</span><select id="status-filter"><option value="all">全部狀態</option><option value="unverified">未查證</option><option value="supported">支持</option><option value="partial">部分支持</option><option value="contradicted">反駁</option></select></label>
+          <label class="toggle"><input id="core-filter" type="checkbox" /><span>只看核心</span></label>
+        </div>
+        <div class="result-meta"><span id="result-count">0 筆</span><span id="search-note">相關度高的證據會排在前面</span></div>
+        <div id="evidence-list" class="evidence-list" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" id="map" data-panel="map">
+        <div class="page-heading">
+          <div><p class="eyebrow">Literature map</p><h1>文獻地圖</h1><p>一個節點是一篇文獻；線段表示你在證據卡中記錄的引用關係。</p></div>
+          <button class="button secondary" id="map-add" type="button">管理文獻資料</button>
+        </div>
+        <div class="map-legend" aria-label="圖例"><span><i class="dot core"></i>核心文獻</span><span><i class="dot normal"></i>已取得</span><span><i class="dot unread"></i>推薦／未取得</span><span><i class="line"></i>引用關係</span></div>
+        <div class="map-layout">
+          <div class="map-canvas" id="map-canvas"><svg id="literature-map" role="img" aria-label="文獻引用關係圖"></svg><div class="map-empty" id="map-empty"><strong>尚無文獻節點</strong><span>新增證據並填寫「文獻鍵值」，地圖就會開始形成。</span></div></div>
+          <aside class="map-guide"><h2>怎麼建立關係？</h2><ol><li>每篇文獻設定一個簡短的「文獻鍵值」，例如 <code>wu-2025</code>。</li><li>在「引用的文獻鍵值」填入它引用的文獻，以逗號分隔。</li><li>把最重要的文獻設為核心；尚未取得全文的推薦文獻設為未讀。</li></ol><p>第二階段可接 OpenAlex，自動補候選引用關係；仍需人工確認是否為同一篇文獻。</p></aside>
+        </div>
+      </section>
+
+      <section class="panel" id="export" data-panel="export">
+        <div class="page-heading"><div><p class="eyebrow">Handoff</p><h1>匯出與交接</h1><p>把資料帶到 Zotero、Obsidian、試算表或 Word；原始檔仍由你掌握。</p></div></div>
+        <div class="sync-guide">
+          <div><p class="eyebrow">跨電腦使用</p><h2>網站可以到處開，資料要主動帶著走</h2><p>目前採隱私優先的本機儲存，不會把研究內容自動上傳。離開一台電腦前下載 JSON，到了另一台電腦再匯入，即可完整接續。</p></div>
+          <ol><li><strong>舊電腦</strong><span>下載「完整備份 JSON」</span></li><li><strong>安全傳送</strong><span>放入自己的雲端硬碟或加密隨身碟</span></li><li><strong>新電腦</strong><span>開啟工作台並選擇 JSON 還原</span></li></ol>
+          <p class="sync-caution"><strong>注意：</strong>匯入會取代新電腦瀏覽器內原有紀錄。若兩邊都有新資料，請先各自備份；真正的自動合併同步需要另接 Supabase 等後端。</p>
+        </div>
+        <div class="export-grid">
+          <article class="export-card featured"><span class="file-icon">{ }</span><div><h2>完整備份 JSON</h2><p>保留所有欄位，換電腦或瀏覽器前請先備份；也能再次匯入還原。</p></div><button class="button primary" id="export-json" type="button">下載 JSON</button></article>
+          <article class="export-card"><span class="file-icon">CSV</span><div><h2>證據總表</h2><p>可用 Excel、Google Sheets 或統計工具開啟。</p></div><button class="button secondary" id="export-csv" type="button">下載 CSV</button></article>
+          <article class="export-card"><span class="file-icon">MD</span><div><h2>Obsidian 筆記包</h2><p>每筆證據一份 Markdown，原文、解釋與來源分區保存。</p></div><button class="button secondary" id="export-md" type="button">下載 Markdown</button></article>
+          <article class="export-card"><span class="file-icon">↥</span><div><h2>還原備份</h2><p>匯入本工具匯出的 JSON；匯入前會先檢查資料格式。</p></div><label class="button secondary file-button">選擇 JSON<input id="import-json" type="file" accept="application/json,.json" /></label></article>
+        </div>
+        <div class="handoff-table">
+          <h2>工具分工建議</h2>
+          <div class="table-scroll"><table><thead><tr><th>任務</th><th>建議工具</th><th>進入台帳前的門檻</th></tr></thead><tbody>
+            <tr><td>找候選文獻</td><td>Google Scholar、Elicit、Consensus</td><td>確認正式題名、作者、年份與來源</td></tr>
+            <tr><td>管理全文與引用</td><td>Zotero</td><td>PDF 與書目相符，記錄 DOI／Zotero key</td></tr>
+            <tr><td>理解難段落</td><td>SciSpace、翻譯工具、NotebookLM</td><td>輸出只能放「解釋」，不可覆蓋原文</td></tr>
+            <tr><td>知識連結</td><td>Obsidian、OpenAlex</td><td>區分已取得、核心與推薦／未讀</td></tr>
+            <tr><td>正式寫作</td><td>Word ＋ Zotero</td><td>引用前核對證據編號、原文與頁碼</td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="evidence-dialog">
+      <form id="evidence-form" method="dialog">
+        <div class="dialog-header"><div><p class="eyebrow">Traceable evidence</p><h2 id="dialog-title">新增證據</h2></div><button class="icon-button" id="close-dialog" type="button" aria-label="關閉">×</button></div>
+        <input name="editingId" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2">研究問題<textarea name="researchQuestion" rows="2" placeholder="例：運動防護介入對大學生動態平衡有何影響？"></textarea></label>
+          <label class="span-2">準備支持或檢驗的主張<textarea name="claim" rows="2" required placeholder="一句可被證據支持或反駁的陳述"></textarea></label>
+          <label class="span-2">文獻題名<input name="title" required /></label>
+          <label>作者<input name="authors" placeholder="Wu & Chen" /></label>
+          <label>年份<input name="year" inputmode="numeric" placeholder="2025" /></label>
+          <label>DOI<input name="doi" placeholder="10.xxxx/xxxxx" /></label>
+          <label>文獻鍵值<input name="paperKey" placeholder="wu-2025" /></label>
+          <label>頁碼<input name="page" placeholder="9 或 9–11" /></label>
+          <label>章節<input name="section" placeholder="Results / 3.2" /></label>
+          <label class="span-2">原文來源連結<input name="sourceUrl" type="url" placeholder="https://…" /></label>
+          <label class="span-2 quote-field">原文逐字內容 <span class="required-note">證據本體</span><textarea name="quote" rows="5" placeholder="貼上原文；不要把翻譯或 AI 改寫混在這裡"></textarea></label>
+          <label class="span-2 interpretation-field">翻譯／白話解釋／研究者註記 <span class="ai-note">不是原文</span><textarea name="interpretation" rows="4" placeholder="可記錄 AI 協助理解的內容，但引用前仍需回原文"></textarea></label>
+          <label>查證狀態<select name="status"><option value="unverified">未查證</option><option value="supported">支持</option><option value="partial">部分支持</option><option value="contradicted">反駁</option></select></label>
+          <label>關鍵字<input name="keywords" placeholder="平衡, 運動防護, 介入" /></label>
+          <label class="span-2">適用範圍與限制<textarea name="limitations" rows="3" placeholder="樣本、研究設計、族群、可推論範圍…"></textarea></label>
+          <label class="span-2">引用的文獻鍵值<input name="cites" placeholder="chen-2023, lin-2021" /><small>用逗號分隔；用於文獻地圖畫線。</small></label>
+          <div class="check-row span-2"><label class="toggle"><input name="core" type="checkbox" /><span>核心文獻</span></label><label class="toggle"><input name="unread" type="checkbox" /><span>推薦／尚未取得全文</span></label></div>
+        </div>
+        <div class="dialog-footer"><p>新紀錄預設「未查證」。來源定位不完整時會顯示警告。</p><div><button class="button secondary" id="cancel-dialog" type="button">取消</button><button class="button primary" type="submit">儲存證據</button></div></div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
+

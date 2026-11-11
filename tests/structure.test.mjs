@@ -1,0 +1,46 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const portable = await readFile(new URL("../研究證據工作台-直接開啟.html", import.meta.url), "utf8");
+
+test("HTML ids are unique", () => {
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
+  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
+  assert.deepEqual([...new Set(duplicates)], []);
+});
+
+test("navigation tabs have matching panels", () => {
+  const tabs = [...html.matchAll(/data-tab="([^"]+)"/g)].map((match) => match[1]);
+  const panels = [...html.matchAll(/data-panel="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(tabs.sort(), panels.sort());
+});
+
+test("traceability fields are present and original text is separate", () => {
+  for (const field of ["claim", "quote", "interpretation", "page", "sourceUrl", "status"]) {
+    assert.match(html, new RegExp(`name="${field}"`));
+  }
+  assert.match(html, /原文逐字內容/);
+  assert.match(html, /不是原文/);
+});
+
+test("cross-device handoff explains local storage and JSON transfer", () => {
+  assert.match(html, /跨電腦使用/);
+  assert.match(html, /完整備份 JSON/);
+  assert.match(html, /匯入會取代/);
+});
+
+test("page does not load third-party scripts or styles", () => {
+  const sources = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(sources.some((source) => /^https?:\/\//i.test(source)), false);
+});
+
+test("portable build contains inline CSS and JavaScript without module dependencies", () => {
+  assert.match(portable, /<style>[\s\S]+--teal:/);
+  assert.match(portable, /<script>[\s\S]+function normalizeEvidence/);
+  assert.doesNotMatch(portable, /src="app\.js"/);
+  assert.doesNotMatch(portable, /href="styles\.css"/);
+  assert.doesNotMatch(portable, /type="module"/);
+});
+
