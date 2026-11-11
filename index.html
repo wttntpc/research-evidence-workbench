@@ -16,7 +16,7 @@
           <span><strong>研究指揮中心</strong><small>Research command center</small></span>
         </a>
         <div class="header-actions">
-          <span class="privacy-badge">● 僅存於本機</span>
+          <span class="privacy-badge" id="cloud-status">● 僅存於本機</span>
           <button class="button primary" id="add-evidence" type="button">＋ 新增證據</button>
         </div>
       </div>
@@ -27,6 +27,7 @@
         <a class="tab active" href="#workflow" data-tab="workflow">研究中心</a>
         <a class="tab" href="#evidence" data-tab="evidence">證據台帳 <span id="nav-count">0</span></a>
         <a class="tab" href="#map" data-tab="map">文獻地圖</a>
+        <a class="tab" href="#cloud" data-tab="cloud">雲端同步</a>
         <a class="tab" href="#export" data-tab="export">匯出與交接</a>
       </div>
     </nav>
@@ -98,12 +99,54 @@
         </div>
       </section>
 
+      <section class="panel" id="cloud" data-panel="cloud">
+        <div class="page-heading"><div><p class="eyebrow">Private cloud sync</p><h1>雲端同步</h1><p>使用您自己的 Supabase，讓研究工作區跨電腦保持一致；GitHub 不會保存研究內容。</p></div></div>
+        <div class="cloud-layout">
+          <article class="cloud-card">
+            <div class="cloud-card-heading"><span class="cloud-step">1</span><div><h2>連接 Supabase</h2><p>建議建立專用的研究指揮中心專案。</p></div></div>
+            <div class="cloud-form">
+              <label>Project URL<input id="supabase-url" type="url" autocomplete="url" placeholder="https://xxxxx.supabase.co" /></label>
+              <label>Publishable／anon key<input id="supabase-key" type="password" autocomplete="off" placeholder="sb_publishable_… 或 anon key" /></label>
+              <p class="field-help">只使用瀏覽器可公開的 publishable／anon key。真正的資料保護由 RLS 執行。</p>
+              <button class="button primary" id="save-cloud-config" type="button">儲存並測試連線</button>
+            </div>
+          </article>
+
+          <article class="cloud-card">
+            <div class="cloud-card-heading"><span class="cloud-step">2</span><div><h2>Email 登入連結</h2><p id="cloud-account">尚未登入</p></div></div>
+            <div class="cloud-form">
+              <label>Email<input id="cloud-email" type="email" autocomplete="email" placeholder="name@example.com" /></label>
+              <div class="button-row"><button class="button primary" id="send-magic-link" type="button">寄送登入連結</button><button class="button secondary" id="cloud-signout" type="button" hidden>登出</button></div>
+              <p class="field-help">點擊信中的連結後會回到本頁，不需設定密碼。</p>
+            </div>
+          </article>
+
+          <article class="cloud-card cloud-sync-card">
+            <div class="cloud-card-heading"><span class="cloud-step">3</span><div><h2>同步研究工作區</h2><p id="cloud-detail">連線並登入後，才能比較本機與雲端版本。</p></div></div>
+            <div class="sync-choice" id="sync-choice" hidden>
+              <strong>本機與雲端都有資料，請選擇保留哪一份</strong>
+              <p>系統不會自動覆蓋。建議先下載 JSON 備份，再選擇版本。</p>
+            </div>
+            <div class="button-row sync-buttons">
+              <button class="button primary" id="cloud-upload" type="button" disabled>以本機資料覆蓋雲端</button>
+              <button class="button secondary" id="cloud-download" type="button" disabled>使用雲端資料</button>
+            </div>
+            <p class="cloud-last-sync" id="cloud-last-sync">尚未同步</p>
+          </article>
+        </div>
+
+        <div class="guardrail cloud-security">
+          <div class="guardrail-icon" aria-hidden="true">✓</div>
+          <div><h3>研究內容不會進入公開 GitHub</h3><p>GitHub Pages 只提供介面程式；研究資料放在您的瀏覽器與 Supabase。資料表已設計成登入者只能讀寫自己的列。</p></div>
+        </div>
+      </section>
+
       <section class="panel" id="export" data-panel="export">
         <div class="page-heading"><div><p class="eyebrow">Handoff</p><h1>匯出與交接</h1><p>把資料帶到 Zotero、Obsidian、試算表或 Word；原始檔仍由你掌握。</p></div></div>
         <div class="sync-guide">
-          <div><p class="eyebrow">跨電腦使用</p><h2>網站可以到處開，資料要主動帶著走</h2><p>目前採隱私優先的本機儲存，不會把研究內容自動上傳。離開一台電腦前下載 JSON，到了另一台電腦再匯入，即可完整接續。</p></div>
-          <ol><li><strong>舊電腦</strong><span>下載「完整備份 JSON」</span></li><li><strong>安全傳送</strong><span>放入自己的雲端硬碟或加密隨身碟</span></li><li><strong>新電腦</strong><span>開啟工作台並選擇 JSON 還原</span></li></ol>
-          <p class="sync-caution"><strong>注意：</strong>匯入會取代新電腦瀏覽器內原有紀錄。若兩邊都有新資料，請先各自備份；真正的自動合併同步需要另接 Supabase 等後端。</p>
+          <div><p class="eyebrow">跨電腦使用</p><h2>Supabase 自動同步，JSON 保留自主備份</h2><p>完成「雲端同步」設定後，研究文件與證據會存入您自己的 Supabase；未設定時仍可用 JSON 在電腦間交接。</p></div>
+          <ol><li><strong>平時</strong><span>登入 Supabase，變更會自動同步</span></li><li><strong>定期</strong><span>下載完整 JSON，保留離線備份</span></li><li><strong>遇到衝突</strong><span>先備份，再選擇本機或雲端版本</span></li></ol>
+          <p class="sync-caution"><strong>注意：</strong>雲端版本選擇與 JSON 匯入都可能取代目前本機內容；工具會先詢問，不會暗中覆蓋。</p>
         </div>
         <div class="export-grid">
           <article class="export-card featured"><span class="file-icon">{ }</span><div><h2>完整備份 JSON</h2><p>保留所有欄位，換電腦或瀏覽器前請先備份；也能再次匯入還原。</p></div><button class="button primary" id="export-json" type="button">下載 JSON</button></article>

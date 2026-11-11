@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0] - 2026-11-11
+
+### Added
+
+- 可點選的研究指揮中心、研究計畫設定與五種常用研究文件。
+- 新版完整工作區資料格式，向下相容既有證據 JSON 與 localStorage。
+- Supabase Email 魔法連結登入、私人雲端同步、手動版本選擇與自動延遲上傳。
+- Owner-scoped RLS schema：每位登入者只能讀寫自己的研究工作區。
+- Supabase 官方 JavaScript client 的本機打包，不依賴第三方 CDN。
+
+### Changed
+
+- GitHub Pages 建置流程會安裝依賴、產生雲端 bundle、執行測試後再部署。
+- JSON 備份現在包含研究設定、研究文件與證據。
+
 ## [0.3.0] - 2026-11-11
 
 ### Added

@@ -4,18 +4,28 @@ import { dirname, join } from "node:path";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const root = dirname(scriptDir);
-const [html, css, core, app] = await Promise.all([
+const [html, css, core, cloudBundle, app] = await Promise.all([
   readFile(join(root, "index.html"), "utf8"),
   readFile(join(root, "styles.css"), "utf8"),
   readFile(join(root, "core.mjs"), "utf8"),
+  readFile(join(root, "cloud.bundle.mjs"), "utf8"),
   readFile(join(root, "app.js"), "utf8"),
 ]);
 
 const coreWithoutExports = core
   .replaceAll("export function ", "function ")
   .replaceAll("export const ", "const ");
-const appWithoutImport = app.replace(/^import\s*\{[\s\S]*?\}\s*from\s*["']\.\/core\.mjs["'];\s*/m, "");
-const inlineScript = `${coreWithoutExports}\n${appWithoutImport}`.replaceAll("</script>", "<\\/script>");
+const cloudWithoutExports = cloudBundle.replace(/export\{([^}]+)\};?\s*$/, (_match, entries) => entries
+  .split(",")
+  .map((entry) => {
+    const [localName, exportedName] = entry.trim().split(/\s+as\s+/);
+    return `const ${exportedName || localName} = ${localName};`;
+  })
+  .join("\n"));
+const appWithoutImport = app
+  .replace(/^import\s*\{[\s\S]*?\}\s*from\s*["']\.\/core\.mjs["'];\s*/m, "")
+  .replace(/^import\s*\{[\s\S]*?\}\s*from\s*["']\.\/cloud\.bundle\.mjs["'];\s*/m, "");
+const inlineScript = `${coreWithoutExports}\n${cloudWithoutExports}\n${appWithoutImport}`.replaceAll("</script>", "<\\/script>");
 
 const portable = html
   .replace('<link rel="stylesheet" href="styles.css" />', `<style>\n${css}\n</style>`)

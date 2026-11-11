@@ -10,9 +10,11 @@ import {
   toMarkdown,
   validateEvidence,
 } from "./core.mjs";
+import { createCloudAdapter, validateSupabaseConfig } from "./cloud.bundle.mjs";
 
 const STORAGE_KEY = "research-command-center:v1";
 const LEGACY_STORAGE_KEY = "research-evidence-workbench:v1";
+const CLOUD_CONFIG_KEY = "research-command-center:supabase-config";
 const STATUS_LABELS = {
   unverified: "未查證",
   supported: "支持",
@@ -31,8 +33,23 @@ const DOCUMENT_TEMPLATES = [
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const state = { workspace: loadWorkspace(), query: "", status: "all", coreOnly: false };
+const state = {
+  workspace: loadWorkspace(),
+  query: "",
+  status: "all",
+  coreOnly: false,
+  cloud: {
+    config: loadCloudConfig(),
+    adapter: null,
+    session: null,
+    status: "local",
+    detail: "尚未設定 Supabase",
+    resolved: false,
+    lastSync: "",
+  },
+};
 let toastTimer;
+let cloudSyncTimer;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -59,6 +76,16 @@ function saveWorkspace() {
   state.workspace.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.workspace));
   renderAll();
+  queueCloudSync();
+}
+
+function loadCloudConfig() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY) || "null");
+    return parsed?.url && parsed?.key ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function showToast(message) {
@@ -70,7 +97,7 @@ function showToast(message) {
 }
 
 function setActivePanel(name) {
-  const target = ["workflow", "evidence", "map", "export"].includes(name) ? name : "workflow";
+  const target = ["workflow", "evidence", "map", "cloud", "export"].includes(name) ? name : "workflow";
   $$('[data-panel]').forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === target));
   $$('[data-tab]').forEach((tab) => {
     const active = tab.dataset.tab === target;
@@ -266,6 +293,178 @@ function renderAll() {
   renderStats();
   renderLedger();
   renderMap();
+  renderCloud();
+}
+
+function setCloudStatus(status, detail) {
+  state.cloud.status = status;
+  if (detail) state.cloud.detail = detail;
+  renderCloud();
+}
+
+function renderCloud() {
+  const statusLabels = {
+    local: "● 僅存於本機",
+    configured: "● Supabase 已設定",
+    signedIn: "● 已登入，準備同步",
+    syncing: "● 同步中…",
+    synced: "● 已同步",
+    conflict: "● 請選擇資料版本",
+    error: "● 同步需要處理",
+  };
+  const cloud = state.cloud;
+  $("#cloud-status").textContent = statusLabels[cloud.status] || statusLabels.local;
+  $("#cloud-status").dataset.status = cloud.status;
+  $("#cloud-detail").textContent = cloud.detail;
+  $("#cloud-account").textContent = cloud.session?.user?.email ? `已登入：${cloud.session.user.email}` : "尚未登入";
+  $("#cloud-signout").hidden = !cloud.session;
+  $("#sync-choice").hidden = cloud.status !== "conflict";
+  $("#cloud-upload").disabled = !cloud.session || cloud.status === "syncing";
+  $("#cloud-download").disabled = !cloud.session || cloud.status === "syncing";
+  $("#cloud-last-sync").textContent = cloud.lastSync ? `最後同步：${formatDateTime(cloud.lastSync)}` : "尚未同步";
+}
+
+function redirectUrl() {
+  const url = new URL(window.location.href);
+  url.hash = "";
+  url.search = "";
+  return url.toString();
+}
+
+async function initializeCloud() {
+  const { config } = state.cloud;
+  if (!config) return renderCloud();
+  $("#supabase-url").value = config.url;
+  $("#supabase-key").value = config.key;
+  try {
+    state.cloud.adapter = createCloudAdapter(config);
+    state.cloud.session = await state.cloud.adapter.getSession();
+    state.cloud.adapter.onAuthStateChange((_event, session) => {
+      const wasSignedIn = Boolean(state.cloud.session);
+      state.cloud.session = session;
+      state.cloud.resolved = false;
+      if (session && !wasSignedIn) reconcileCloud();
+      else if (!session) setCloudStatus("configured", "Supabase 已連接，請用 Email 登入");
+      else renderCloud();
+    });
+    if (state.cloud.session) await reconcileCloud();
+    else setCloudStatus("configured", "Supabase 已連接，請用 Email 登入");
+  } catch (error) {
+    setCloudStatus("error", error.message);
+  }
+}
+
+async function saveCloudConfig() {
+  try {
+    const config = validateSupabaseConfig($("#supabase-url").value, $("#supabase-key").value);
+    const adapter = createCloudAdapter(config);
+    localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(config));
+    state.cloud.config = config;
+    state.cloud.adapter = adapter;
+    state.cloud.session = await adapter.getSession();
+    state.cloud.resolved = false;
+    adapter.onAuthStateChange((_event, session) => {
+      state.cloud.session = session;
+      if (session) reconcileCloud();
+      else setCloudStatus("configured", "Supabase 已連接，請用 Email 登入");
+    });
+    showToast("Supabase 設定已儲存在這個瀏覽器");
+    if (state.cloud.session) await reconcileCloud();
+    else setCloudStatus("configured", "連線設定完成，下一步請用 Email 登入");
+  } catch (error) {
+    setCloudStatus("error", error.message);
+    showToast(`連線設定失敗：${error.message}`);
+  }
+}
+
+async function sendMagicLink() {
+  const email = $("#cloud-email").value.trim();
+  if (!email) return showToast("請先填寫 Email");
+  if (!state.cloud.adapter) return showToast("請先儲存 Supabase 設定");
+  try {
+    setCloudStatus("configured", "正在寄送登入連結…");
+    await state.cloud.adapter.sendMagicLink(email, redirectUrl());
+    setCloudStatus("configured", "登入連結已寄出，請到信箱點擊後回到本頁");
+    showToast("Email 登入連結已寄出");
+  } catch (error) {
+    setCloudStatus("error", error.message);
+    showToast(`寄送失敗：${error.message}`);
+  }
+}
+
+async function reconcileCloud() {
+  if (!state.cloud.adapter || !state.cloud.session) return;
+  try {
+    setCloudStatus("syncing", "正在比較本機與雲端資料…");
+    const remote = await state.cloud.adapter.fetchWorkspace();
+    const decision = decideInitialSync(state.workspace, remote?.workspace ?? null);
+    if (decision === "upload") return uploadCloud(false);
+    if (decision === "download") return downloadCloud(false);
+    if (decision === "conflict") {
+      state.cloud.resolved = false;
+      return setCloudStatus("conflict", "兩邊都有不同內容；系統不會自動覆蓋，請選擇保留版本");
+    }
+    state.cloud.resolved = true;
+    state.cloud.lastSync = remote?.updatedAt || "";
+    setCloudStatus("synced", decision === "idle" ? "已連線；建立內容後會自動同步" : "本機與雲端內容一致");
+  } catch (error) {
+    state.cloud.resolved = false;
+    setCloudStatus("error", error.message);
+  }
+}
+
+async function uploadCloud(showSuccess = true) {
+  if (!state.cloud.adapter || !state.cloud.session) return showToast("請先登入 Supabase");
+  try {
+    setCloudStatus("syncing", "正在上傳本機研究工作區…");
+    const result = await state.cloud.adapter.saveWorkspace(state.workspace);
+    state.cloud.resolved = true;
+    state.cloud.lastSync = result.updatedAt;
+    setCloudStatus("synced", "本機內容已安全同步到雲端");
+    if (showSuccess) showToast("本機資料已上傳");
+  } catch (error) {
+    setCloudStatus("error", error.message);
+    if (showSuccess) showToast(`上傳失敗：${error.message}`);
+  }
+}
+
+async function downloadCloud(confirmReplace = true) {
+  if (!state.cloud.adapter || !state.cloud.session) return showToast("請先登入 Supabase");
+  if (confirmReplace && !window.confirm("這會以雲端工作區取代目前本機資料。建議先下載 JSON 備份。是否繼續？")) return;
+  try {
+    setCloudStatus("syncing", "正在下載雲端研究工作區…");
+    const result = await state.cloud.adapter.fetchWorkspace();
+    if (!result) throw new Error("雲端目前沒有研究工作區");
+    state.workspace = normalizeWorkspace(result.workspace);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.workspace));
+    state.cloud.resolved = true;
+    state.cloud.lastSync = result.updatedAt;
+    renderAll();
+    setCloudStatus("synced", "已套用雲端版本");
+    if (confirmReplace) showToast("已下載雲端資料");
+  } catch (error) {
+    setCloudStatus("error", error.message);
+    if (confirmReplace) showToast(`下載失敗：${error.message}`);
+  }
+}
+
+function queueCloudSync() {
+  clearTimeout(cloudSyncTimer);
+  if (!state.cloud.adapter || !state.cloud.session || !state.cloud.resolved || state.cloud.status === "conflict") return;
+  cloudSyncTimer = setTimeout(() => uploadCloud(false), 1200);
+}
+
+async function signOutCloud() {
+  if (!state.cloud.adapter) return;
+  try {
+    await state.cloud.adapter.signOut();
+    state.cloud.session = null;
+    state.cloud.resolved = false;
+    setCloudStatus("configured", "已登出；本機資料仍可繼續使用");
+    showToast("已登出 Supabase");
+  } catch (error) {
+    setCloudStatus("error", error.message);
+  }
 }
 
 function openProjectDialog() {
@@ -494,6 +693,11 @@ function bindEvents() {
   $("#document-form").addEventListener("submit", saveDocument);
   $("#delete-document").addEventListener("click", deleteDocument);
   $("#document-dialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) closeDocumentDialog(); });
+  $("#save-cloud-config").addEventListener("click", saveCloudConfig);
+  $("#send-magic-link").addEventListener("click", sendMagicLink);
+  $("#cloud-upload").addEventListener("click", () => uploadCloud(true));
+  $("#cloud-download").addEventListener("click", () => downloadCloud(true));
+  $("#cloud-signout").addEventListener("click", signOutCloud);
   $("#map-add").addEventListener("click", () => { location.hash = "evidence"; openDialog(); });
   $("#close-dialog").addEventListener("click", closeDialog);
   $("#cancel-dialog").addEventListener("click", closeDialog);
@@ -513,4 +717,5 @@ function bindEvents() {
 bindEvents();
 renderAll();
 setActivePanel(location.hash.slice(1));
+initializeCloud();
 

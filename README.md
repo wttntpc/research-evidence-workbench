@@ -1,6 +1,6 @@
-# 研究證據工作台
+# 研究指揮中心
 
-這是一個本機優先的學術研究 MVP，把七張參考圖中的做法整合為同一條可追溯工作流：
+這是一個本機優先、可選擇 Supabase 私人同步的學術研究平台。它把研究計畫、研究文件、證據與文獻關係放在同一個可點選的工作台：
 
 > 探索文獻 → 保存全文 → 擷取原文 → 人工查證 → 建立關係 → 寫作引用 → 回查稽核
 
@@ -8,14 +8,20 @@
 
 ## 已完成
 
-- 研究流程儀表板與資料完整度摘要。
+- 研究指揮中心：研究名稱、核心問題、目前階段、下一步與完整度摘要。
+- 可直接點開與編輯的研究文件：研究計畫、研究護照、搜尋策略、文獻矩陣與分析計畫。
 - 證據卡與證據台帳：主張、原文、解釋、頁碼、來源、狀態、限制。
 - 證據編號：`YYYYMMDD-Qnn-Ennn`。
 - 全庫文字搜尋、狀態篩選與核心文獻篩選。
 - 文獻地圖：核心文獻、已取得文獻、推薦／未讀文獻與引用關係。
 - 複製可回查的寫作文字。
-- JSON 完整備份／還原、CSV 台帳、Markdown／Obsidian 筆記匯出。
-- 不登入、不使用分析追蹤、不連外；資料只放在瀏覽器 `localStorage`。
+- JSON 完整工作區備份／還原、CSV 台帳、Markdown／Obsidian 筆記匯出。
+- 可選擇連接自己的 Supabase，以 Email 魔法連結登入並跨電腦同步。
+- 未設定 Supabase 時不登入、不上傳；資料只放在瀏覽器 `localStorage`。
+
+## 線上開啟
+
+[開啟 GitHub Pages 研究指揮中心](https://wttntpc.github.io/research-evidence-workbench/)
 
 ## 最簡單：直接雙擊開啟
 
@@ -47,23 +53,36 @@ http://127.0.0.1:4176/
 
 ## 最短使用流程
 
-1. 在 Google Scholar／Elicit／Consensus 找到候選文獻。
-2. 將正式書目和 PDF 放進 Zotero。
-3. 開啟 PDF，將真正支持或反駁主張的原文、頁碼和來源填入證據卡。
-4. 把翻譯、SciSpace／NotebookLM／AI 說明放在「解釋（非原文）」欄。
-5. 核對原文語境後，才把狀態由「未查證」改為支持、部分支持或反駁。
-6. 寫 Word 時複製含證據編號的文字，正式引文仍由 Zotero 插入。
-7. 定期下載 JSON 備份；要進 Obsidian 時匯出 Markdown。
+1. 開啟「研究中心」，按「設定研究計畫」，填研究名稱、核心問題、階段與下一步。
+2. 首頁會建立五份常用文件；直接點卡片開啟與編輯。
+3. 在 Google Scholar／Elicit／Consensus 找候選文獻，書目與 PDF 放進 Zotero。
+4. 按「新增證據」，保存真正支持或反駁主張的原文、頁碼與來源。
+5. 把翻譯或 AI 說明放在「解釋（非原文）」欄，核對原文後再改查證狀態。
+6. 寫作時用證據編號回查；正式引文仍由 Zotero 插入。
+7. 啟用 Supabase 跨電腦同步，並定期下載 JSON 離線備份。
 
-## 跨電腦使用
+## Supabase 跨電腦同步
 
-GitHub Pages 或可攜版能讓不同電腦開啟同一套工作台，但瀏覽器的本機資料不會自動同步。安全且不需帳號的方式是：
+請使用獨立的 Supabase 專案，不要沿用課程雷達資料庫。完整圖文以介面提示為準，設定順序如下：
 
-1. 舊電腦在「匯出與交接」下載完整 JSON。
-2. 透過自己的雲端硬碟或加密隨身碟帶到新電腦。
-3. 新電腦開啟工作台，在「還原備份」選擇 JSON。
+1. 在 Supabase 建立一個新 project。
+2. 開啟 SQL Editor，把 [`supabase/schema.sql`](supabase/schema.sql) 全部貼上並執行一次。
+3. 在 Authentication → URL Configuration，把 Site URL 與允許的 redirect URL 加入：
+   `https://wttntpc.github.io/research-evidence-workbench/`
+4. 到 Project Settings／Connect 複製 Project URL 與 **publishable key**（舊專案可用 anon key）。
+5. 回到工作台「雲端同步」，貼入兩項設定並按「儲存並測試連線」。
+6. 輸入 Email，按「寄送登入連結」，到信箱點連結回到工作台。
+7. 第一次同步若兩邊都有資料，先下載 JSON，再明確選擇「使用雲端資料」或「以本機資料覆蓋雲端」。
 
-匯入會取代該瀏覽器原有紀錄；兩台電腦都有新增資料時，應先各自備份。若需要自動雙向同步，需另接具有登入、權限與衝突處理的後端，例如 Supabase。
+連線成功後，後續變更會延遲約一秒自動同步。Supabase 設定只存在目前瀏覽器；換電腦時需再次貼入 Project URL 與 publishable key，再用相同 Email 登入。
+
+### 安全原則
+
+- 瀏覽器只能使用 publishable／anon key；絕對不要填入 secret 或 service-role key。
+- `research_workspaces` 已啟用 RLS，四種操作都限制為 `(select auth.uid()) = user_id`。
+- GitHub repository 只放程式碼與資料表結構，不放研究內容。
+- Supabase 離線或暫停時，本機資料仍保留；恢復後可重新同步。
+- JSON 備份仍是必要的第二層保護。
 
 ## 文獻地圖規則
 
@@ -94,7 +113,7 @@ GitHub Pages 或可攜版能讓不同電腦開啟同一套工作台，但瀏覽�
 
 重新開啟 Codex 後，可使用 `$exercise-emotion-cognition-workflow` 呼叫。
 
-## 第二階段建議
+## 後續建議
 
 1. 本機 PDF 全文索引、OCR、逐頁原文定位與反白截圖。
 2. Zotero 本機 API：自動帶入書目與開啟對應 PDF。
@@ -105,6 +124,8 @@ GitHub Pages 或可攜版能讓不同電腦開啟同一套工作台，但瀏覽�
 ## 開發與驗證
 
 ```powershell
+npm install
+npm run build
 npm test
 npm run check
 ```

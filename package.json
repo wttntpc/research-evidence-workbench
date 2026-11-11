@@ -1,12 +1,17 @@
 {
   "name": "research-evidence-workbench",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
+    "build:cloud": "esbuild cloud.mjs --bundle --format=esm --platform=browser --outfile=cloud.bundle.mjs --minify",
     "build:portable": "node scripts/build-portable.mjs",
+    "build": "npm run build:cloud && npm run build:portable",
     "test": "node --test",
-    "check": "node --check app.js && node --check core.mjs"
+    "check": "node --check app.js && node --check core.mjs && node --check cloud.mjs && node --check cloud.bundle.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "esbuild": "^0.28.2"
   }
 }
-

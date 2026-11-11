@@ -28,7 +28,7 @@ test("traceability fields are present and original text is separate", () => {
 test("cross-device handoff explains local storage and JSON transfer", () => {
   assert.match(html, /跨電腦使用/);
   assert.match(html, /完整備份 JSON/);
-  assert.match(html, /匯入會取代/);
+  assert.match(html, /取代目前本機內容/);
 });
 
 test("research command center exposes project, next action, and clickable documents", () => {
@@ -45,6 +45,16 @@ test("project and document dialogs provide editable fields", () => {
   }
   assert.match(html, /id="document-dialog"/);
   assert.match(html, /name="content"/);
+});
+
+test("cloud panel exposes setup, passwordless login, and explicit sync controls", () => {
+  for (const id of ["cloud", "cloud-status", "supabase-url", "supabase-key", "cloud-email", "save-cloud-config", "send-magic-link", "cloud-upload", "cloud-download", "cloud-signout"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /Email 登入連結/);
+  assert.match(html, /使用雲端資料/);
+  assert.match(html, /以本機資料覆蓋雲端/);
+  assert.doesNotMatch(html, /service_role|secret key/i);
 });
 
 test("page does not load third-party scripts or styles", () => {

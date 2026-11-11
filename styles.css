@@ -172,6 +172,25 @@ select, input, textarea { color: var(--ink); border: 1px solid #bdc7ca; border-r
 .map-guide p { color: var(--muted); margin: 16px 0 0; padding-top: 14px; border-top: 1px solid #cddbd6; font-size: .78rem; }
 code { background: #e2e8e5; border-radius: 5px; padding: 1px 5px; }
 
+.cloud-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cloud-card { padding: 23px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.cloud-sync-card { grid-column: 1 / -1; }
+.cloud-card-heading { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 18px; }
+.cloud-card-heading h2 { margin-bottom: 2px; font-size: 1.12rem; }
+.cloud-card-heading p { color: var(--muted); margin: 0; font-size: .8rem; }
+.cloud-step { flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--teal); font-size: .75rem; font-weight: 900; }
+.cloud-form { display: grid; gap: 12px; }
+.cloud-form label { display: grid; gap: 5px; color: #465368; font-size: .8rem; font-weight: 800; }
+.cloud-form input { width: 100%; padding: 10px 11px; font-weight: 500; }
+.field-help, .cloud-last-sync { color: var(--muted); margin: 0; font-size: .75rem; }
+.button-row { display: flex; gap: 9px; flex-wrap: wrap; }
+.sync-buttons { margin-top: 16px; }
+.button:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+.sync-choice { padding: 13px 15px; border: 1px solid #efc27c; border-radius: 11px; background: #fff8e8; }
+.sync-choice p { color: #715e3f; margin: 3px 0 0; font-size: .8rem; }
+.cloud-last-sync { margin-top: 13px; }
+.cloud-security { margin-top: 16px; }
+
 .sync-guide { margin-bottom: 18px; padding: 23px; border: 1px solid #80afa9; border-radius: 16px; background: #f2faf7; }
 .sync-guide h2 { margin-bottom: 5px; font-size: 1.25rem; }
 .sync-guide > div > p:last-child { color: var(--muted); margin-bottom: 17px; }
@@ -247,6 +266,9 @@ dialog::backdrop { background: rgb(13 29 40 / .7); backdrop-filter: blur(3px); }
   .project-meta { grid-template-columns: 1fr; }
   .split-heading { align-items: stretch; flex-direction: column; }
   .document-grid { grid-template-columns: 1fr; }
+  .cloud-layout { grid-template-columns: 1fr; }
+  .cloud-sync-card { grid-column: auto; }
+  .sync-buttons { display: grid; }
   h1 { font-size: 2.25rem; }
   .workflow-grid { grid-template-columns: 1fr; }
   .workflow-card { min-height: 170px; }
