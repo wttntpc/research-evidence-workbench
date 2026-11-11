@@ -1,4 +1,6 @@
 const STATUSES = new Set(["unverified", "supported", "partial", "contradicted"]);
+const DOCUMENT_STATUSES = new Set(["draft", "active", "complete", "archived"]);
+export const WORKSPACE_SCHEMA = "research-command-center/v1";
 
 const TEXT_FIELDS = [
   "researchQuestion",
@@ -61,6 +63,92 @@ function asList(value) {
 
 function pad(value, width) {
   return String(value).padStart(width, "0");
+}
+
+export function createWorkspace(now = new Date().toISOString()) {
+  return {
+    schema: WORKSPACE_SCHEMA,
+    profile: {
+      title: "",
+      primaryQuestion: "",
+      stage: "",
+      nextAction: "",
+      updatedAt: now,
+    },
+    documents: [],
+    records: [],
+    updatedAt: now,
+  };
+}
+
+function normalizeDocument(input = {}, index = 0, now = new Date().toISOString()) {
+  const title = clean(input.title);
+  return {
+    id: clean(input.id) || `document-${index + 1}`,
+    title,
+    type: clean(input.type) || "note",
+    status: DOCUMENT_STATUSES.has(input.status) ? input.status : "draft",
+    summary: clean(input.summary),
+    content: String(input.content ?? "").trim(),
+    updatedAt: clean(input.updatedAt) || now,
+  };
+}
+
+export function normalizeWorkspace(input = {}) {
+  const now = new Date().toISOString();
+  const source = Array.isArray(input) ? { records: input } : (input && typeof input === "object" ? input : {});
+  const profile = source.profile && typeof source.profile === "object" ? source.profile : {};
+  const documents = Array.isArray(source.documents) ? source.documents : [];
+  const records = Array.isArray(source.records) ? source.records : [];
+
+  return {
+    schema: WORKSPACE_SCHEMA,
+    profile: {
+      title: clean(profile.title),
+      primaryQuestion: clean(profile.primaryQuestion),
+      stage: clean(profile.stage),
+      nextAction: clean(profile.nextAction),
+      updatedAt: clean(profile.updatedAt) || now,
+    },
+    documents: documents.map((document, index) => normalizeDocument(document, index, now)),
+    records: records.map(normalizeEvidence),
+    updatedAt: clean(source.updatedAt) || now,
+  };
+}
+
+export function workspaceHasContent(input) {
+  const workspace = normalizeWorkspace(input);
+  const profileHasContent = ["title", "primaryQuestion", "stage", "nextAction"]
+    .some((field) => Boolean(workspace.profile[field]));
+  const documentHasContent = workspace.documents.some((document) => document.title || document.summary || document.content);
+  return profileHasContent || documentHasContent || workspace.records.length > 0;
+}
+
+function comparableWorkspace(input) {
+  const workspace = normalizeWorkspace(input);
+  return {
+    profile: {
+      title: workspace.profile.title,
+      primaryQuestion: workspace.profile.primaryQuestion,
+      stage: workspace.profile.stage,
+      nextAction: workspace.profile.nextAction,
+    },
+    documents: workspace.documents.map(({ updatedAt, ...document }) => document),
+    records: workspace.records.map(({ createdAt, updatedAt, ...record }) => record),
+  };
+}
+
+export function decideInitialSync(localInput, remoteInput) {
+  const local = normalizeWorkspace(localInput);
+  const remote = remoteInput == null ? null : normalizeWorkspace(remoteInput);
+  const localHasContent = workspaceHasContent(local);
+  const remoteHasContent = remote ? workspaceHasContent(remote) : false;
+
+  if (!localHasContent && !remoteHasContent) return "idle";
+  if (localHasContent && !remote) return "upload";
+  if (!localHasContent && remoteHasContent) return "download";
+  if (remote && JSON.stringify(comparableWorkspace(local)) === JSON.stringify(comparableWorkspace(remote))) return "synced";
+  return "conflict";
 }
 
 export function generateEvidenceId(date = new Date(), queryNumber = 1, records = []) {
