@@ -82,6 +82,18 @@ GitHub Pages 或可攜版能讓不同電腦開啟同一套工作台，但瀏覽�
 | 建立脈絡 | Obsidian、OpenAlex | 區分已取得與推薦／未讀 |
 | 正式寫作 | Word ＋ Zotero | 證據編號回查，Zotero 管正式引用 |
 
+## 內附研究工作流 Skill
+
+儲存庫的 `skills/exercise-emotion-cognition-workflow` 是一個已驗證的 Codex Skill，用來維持「運動—情緒—認知」研究從研究問題、文獻搜尋、全文比較、證據卡、分析計畫到寫作稽核的連續性。
+
+換電腦後，可將整個 Skill 資料夾複製到：
+
+```text
+%USERPROFILE%\.codex\skills\exercise-emotion-cognition-workflow
+```
+
+重新開啟 Codex 後，可使用 `$exercise-emotion-cognition-workflow` 呼叫。
+
 ## 第二階段建議
 
 1. 本機 PDF 全文索引、OCR、逐頁原文定位與反白截圖。
