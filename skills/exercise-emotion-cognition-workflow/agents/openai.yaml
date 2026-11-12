@@ -1,8 +1,0 @@
-interface:
-  display_name: "運動情緒認知研究工作流"
-  short_description: "整合研究問題、文獻矩陣、證據追溯與學術寫作流程"
-  brand_color: "#126C68"
-  default_prompt: "Use $exercise-emotion-cognition-workflow to organize my research question, literature search, evidence matrix, and next checkpoint."
-
-policy:
-  allow_implicit_invocation: true

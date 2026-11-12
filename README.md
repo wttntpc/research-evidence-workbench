@@ -1,5 +1,7 @@
 # 研究指揮中心
 
+> **維護狀態：暫停。** 此專案不再新增功能；「主張—原文—頁碼—查證狀態」的證據卡流程改以試算表提供。程式與說明保留作參考。
+
 這是一個本機優先、可選擇 Supabase 私人同步的學術研究平台。它把研究計畫、研究文件、證據與文獻關係放在同一個可點選的工作台：
 
 > 探索文獻 → 保存全文 → 擷取原文 → 人工查證 → 建立關係 → 寫作引用 → 回查稽核
@@ -100,18 +102,6 @@ http://127.0.0.1:4176/
 | 理解內容 | SciSpace、翻譯、NotebookLM | 文字放解釋欄，不能覆蓋原文 |
 | 建立脈絡 | Obsidian、OpenAlex | 區分已取得與推薦／未讀 |
 | 正式寫作 | Word ＋ Zotero | 證據編號回查，Zotero 管正式引用 |
-
-## 內附研究工作流 Skill
-
-儲存庫的 `skills/exercise-emotion-cognition-workflow` 是一個已驗證的 Codex Skill，用來維持「運動—情緒—認知」研究從研究問題、文獻搜尋、全文比較、證據卡、分析計畫到寫作稽核的連續性。
-
-換電腦後，可將整個 Skill 資料夾複製到：
-
-```text
-%USERPROFILE%\.codex\skills\exercise-emotion-cognition-workflow
-```
-
-重新開啟 Codex 後，可使用 `$exercise-emotion-cognition-workflow` 呼叫。
 
 ## 後續建議
 
